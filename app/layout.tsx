@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google'
 import "./globals.css";
 import { cn } from "@/utils/utils"
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from "@/components/ui/toaster"
 
 
 const defaultUrl = process.env.VERCEL_URL
@@ -35,8 +36,10 @@ export default function RootLayout({
           
           >
           {children}
+          <Toaster />
 
           </ThemeProvider>
+          <Toaster />
          
       </body>
     </html>

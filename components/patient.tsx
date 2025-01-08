@@ -15,6 +15,11 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import CustomForm from "./customForm"
+import { useToast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/ui/toaster"
+import { ToastAction } from "@/components/ui/toast"
+import { signInAction } from "@/app/actions"
+
 
 
 export enum formF {
@@ -44,13 +49,25 @@ const Patient = () =>{
       password: ""
     },
   })
-
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const { toast } = useToast()
+ 
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values)
+    const error = await signInAction(values);
+    if(error){console.log(values)
+    toast({
+      variant: "destructive",
+      className: "bg-red-500",
+      description: "There was a problem with your request.",
+      action: <ToastAction altText="Try again">Try again</ToastAction>,
+    });}
+
+
   }
+
+
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-6">
