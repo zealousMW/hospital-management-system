@@ -37,7 +37,7 @@ import React, { useState } from 'react';
       case formF.INPUT:
         return (
           
-            <div className="flex rounded-md border border-dark-500 bg-dark-400">
+            <div className="flex rounded-md border border-dark-500 max-w-[300px]">
                 {iconSrc && (
                     <Image
                     src={iconSrc}
@@ -64,7 +64,7 @@ import React, { useState } from 'react';
             const [inputValue, setInputValue] = useState(field.value || '');
         return (
           
-            <div className="flex rounded-md border border-dark-500 bg-dark-400">
+            <div className="flex rounded-md border border-dark-500 max-w-[300px]">
                 {iconSrc && (
                     <Image
                     src={iconSrc}

@@ -73,7 +73,7 @@ const Patient = () =>{
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-6">
         <section className="mb-12 space-y-4">
           <h1 className="header">Login</h1>
-          <p className="text-dark-700">
+          <p className="text-light-300">
             Welcome back! Please login to your account.
           </p>
 
@@ -101,7 +101,7 @@ const Patient = () =>{
 
         />
         
-        <Button type="submit">Login</Button>
+        <Button variant="default" type="submit" className="bg-black text-white">Login</Button>
       </form>
     </Form>
   )
