@@ -3,79 +3,90 @@ import { AlertCircle, UserPlus, Syringe, BedDouble, ArrowRightLeft, ClipboardLis
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const RecentActivities = () => {
-  const activities = [
-    {
-      id: 1,
-      time: '10:45 AM',
-      action: 'New patient admitted to Ward A',
-      type: 'admission',
-      priority: 'normal',
-      user: 'Dr. Smith',
-      icon: UserPlus
-    },
-    {
-      id: 2,
-      time: '10:30 AM',
-      action: 'Emergency patient transferred to Surgery',
-      type: 'critical',
-      priority: 'high',
-      user: 'Dr. Johnson',
-      icon: AlertCircle
-    },
-    {
-      id: 3,
-      time: '10:15 AM',
-      action: 'Medication administered to patient #1234',
-      type: 'treatment',
-      priority: 'normal',
-      user: 'Dr. Wilson',
-      icon: Syringe
-    },
-    {
-      id: 4,
-      time: '10:00 AM',
-      action: 'Bed 105 marked for maintenance',
-      type: 'facility',
-      priority: 'low',
-      user: 'Facility Staff',
-      icon: BedDouble
-    },
-    {
-      id: 5,
-      time: '09:45 AM',
-      action: 'Department referral for Patient #5678',
-      type: 'referral',
-      priority: 'normal',
-      user: 'Dr. Brown',
-      icon: ArrowRightLeft
-    }
-  ];
 
-  const getActivityStyle = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-50 border-red-100';
-      case 'normal':
-        return 'bg-blue-50 border-blue-100';
-      case 'low':
-        return 'bg-gray-50 border-gray-100';
-      default:
-        return 'bg-gray-50 border-gray-100';
-    }
-  };
+interface Activity {
+    id: number;
+    time: string;
+    action: string;
+    type: string;
+    priority: 'high' | 'normal' | 'low';
+    user: string;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
 
-  const getIconStyle = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'text-red-500';
-      case 'normal':
-        return 'text-blue-500';
-      case 'low':
-        return 'text-gray-500';
-      default:
-        return 'text-gray-500';
+const activities: Activity[] = [
+    {
+        id: 1,
+        time: '10:45 AM',
+        action: 'New patient admitted to Ward A',
+        type: 'admission',
+        priority: 'normal',
+        user: 'Dr. Smith',
+        icon: UserPlus
+    },
+    {
+        id: 2,
+        time: '10:30 AM',
+        action: 'Emergency patient transferred to Surgery',
+        type: 'critical',
+        priority: 'high',
+        user: 'Dr. Johnson',
+        icon: AlertCircle
+    },
+    {
+        id: 3,
+        time: '10:15 AM',
+        action: 'Medication administered to patient #1234',
+        type: 'treatment',
+        priority: 'normal',
+        user: 'Dr. Wilson',
+        icon: Syringe
+    },
+    {
+        id: 4,
+        time: '10:00 AM',
+        action: 'Bed 105 marked for maintenance',
+        type: 'facility',
+        priority: 'low',
+        user: 'Facility Staff',
+        icon: BedDouble
+    },
+    {
+        id: 5,
+        time: '09:45 AM',
+        action: 'Department referral for Patient #5678',
+        type: 'referral',
+        priority: 'normal',
+        user: 'Dr. Brown',
+        icon: ArrowRightLeft
     }
-  };
+];
+
+const getActivityStyle = (priority: 'high' | 'normal' | 'low'): string => {
+    switch (priority) {
+        case 'high':
+            return 'bg-red-50 border-red-100';
+        case 'normal':
+            return 'bg-blue-50 border-blue-100';
+        case 'low':
+            return 'bg-gray-50 border-gray-100';
+        default:
+            return 'bg-gray-50 border-gray-100';
+    }
+};
+
+const getIconStyle = (priority: 'high' | 'normal' | 'low'): string => {
+    switch (priority) {
+        case 'high':
+            return 'text-red-500';
+        case 'normal':
+            return 'text-blue-500';
+        case 'low':
+            return 'text-gray-500';
+        default:
+            return 'text-gray-500';
+    }
+};
 
   return (
     <ScrollArea className="h-[325px] pr-4">
