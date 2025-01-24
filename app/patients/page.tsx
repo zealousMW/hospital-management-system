@@ -14,7 +14,7 @@ const Patients = () => {
       >
         <AppSidebar />
         <SidebarInset>
-        <SidebarTrigger className="-ml-1" />
+        <SidebarTrigger />
             <PatientTable />
         </SidebarInset>
       </SidebarProvider>
