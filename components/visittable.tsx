@@ -9,10 +9,17 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Input } from '@/components/ui/input';
 import AddVisitPage from './addvisits';
 import PatientRegistrationForm from './addpatient';
-import { Search, Hospital } from 'lucide-react';
+import { Search, Hospital, MoreHorizontal, Eye, UserPlus, FileText } from 'lucide-react';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Visits from '@/app/patients/page';
 
-const HospitalVisitsPage = () => {
+const Visitstable = () => {
   const [inpatientVisits, setInpatientVisits] = useState<InpatientVisit[]>([]);
   const [outpatientVisits, setOutpatientVisits] = useState<OutpatientVisit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +33,7 @@ const HospitalVisitsPage = () => {
     visit_date: string;
     status: string;
     department: string;
+    gender: string;  // Add gender to base interface
   }
 
   interface InpatientVisit extends Visit {
@@ -63,6 +71,21 @@ const HospitalVisitsPage = () => {
     setSearchTerm(event.target.value);
   };
 
+  const handleViewPatient = (patientId: number) => {
+    console.log('View patient:', patientId);
+    // Add your view patient logic here
+  };
+
+  const handleConvertToInpatient = (patientId: number) => {
+    console.log('Convert to inpatient:', patientId);
+    // Add your conversion logic here
+  };
+
+  const handleViewDetails = (visitId: number) => {
+    console.log('View visit details:', visitId);
+    // Add your view details logic here
+  };
+
   const filteredInpatientVisits = inpatientVisits.filter(visit =>
     visit.patient_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -85,7 +108,8 @@ const HospitalVisitsPage = () => {
         status: 'Active',
         bed_id: 101,
         department: 'Cardiology',
-        current_status: 'Stable'
+        current_status: 'Stable',
+        gender: 'Male'  // Add gender
       },
       {
         visit_id: 2,
@@ -97,7 +121,8 @@ const HospitalVisitsPage = () => {
         status: 'Critical',
         bed_id: 205,
         department: 'Intensive Care',
-        current_status: 'Critical'
+        current_status: 'Critical',
+        gender: 'Female'  // Add gender
       }
     ];
 
@@ -109,7 +134,8 @@ const HospitalVisitsPage = () => {
         visit_date: '2024-01-20',
         visit_type: 'Outpatient',
         status: 'Discharged',
-        department: 'General Medicine'
+        department: 'General Medicine',
+        gender: 'Female'  // Add gender
       },
       {
         visit_id: 4,
@@ -118,7 +144,8 @@ const HospitalVisitsPage = () => {
         visit_date: '2023-12-18',
         visit_type: 'Outpatient',
         status: 'Under Observation',
-        department: 'Neurology'
+        department: 'Neurology',
+        gender: 'Male'  // Add gender
       }
     ];
 
@@ -218,6 +245,7 @@ const HospitalVisitsPage = () => {
                   <TableRow>
                     <TableHead>Visit ID</TableHead>
                     <TableHead>Patient Name</TableHead>
+                    <TableHead>Gender</TableHead>
                     <TableHead>Primary Doctor</TableHead>
                     <TableHead>Visit Date</TableHead>
                     <TableHead>Admission Date</TableHead>
@@ -227,6 +255,7 @@ const HospitalVisitsPage = () => {
                     <TableHead>Bed ID</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Old / New</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -234,6 +263,7 @@ const HospitalVisitsPage = () => {
                     <TableRow key={visit.visit_id}>
                       <TableCell>{visit.visit_id}</TableCell>
                       <TableCell>{visit.patient_name}</TableCell>
+                      <TableCell>{visit.gender}</TableCell>
                       <TableCell>{visit.primary_doctor}</TableCell>
                       <TableCell>{visit.visit_date}</TableCell>
                       <TableCell>{visit.admission_date}</TableCell>
@@ -247,6 +277,25 @@ const HospitalVisitsPage = () => {
                           {isNewVisit(visit.visit_date) ? 'New' : 'Old'}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewPatient(visit.visit_id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Patient
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(visit.visit_id)}>
+                              <FileText className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -259,10 +308,12 @@ const HospitalVisitsPage = () => {
                   <TableRow>
                     <TableHead>Visit ID</TableHead>
                     <TableHead>Patient Name</TableHead>
+                    <TableHead>Gender</TableHead>
                     <TableHead>Primary Doctor</TableHead>
                     <TableHead>Visit Date</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Old / New</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -270,6 +321,7 @@ const HospitalVisitsPage = () => {
                     <TableRow key={visit.visit_id}>
                       <TableCell>{visit.visit_id}</TableCell>
                       <TableCell>{visit.patient_name}</TableCell>
+                      <TableCell>{visit.gender}</TableCell>
                       <TableCell>{visit.primary_doctor}</TableCell>
                       <TableCell>{visit.visit_date}</TableCell>
                       <TableCell>{visit.department}</TableCell>
@@ -277,6 +329,29 @@ const HospitalVisitsPage = () => {
                         <Badge variant={isNewVisit(visit.visit_date) ? 'default' : 'secondary'}>
                           {isNewVisit(visit.visit_date) ? 'New' : 'Old'}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewPatient(visit.visit_id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Patient
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(visit.visit_id)}>
+                              <FileText className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleConvertToInpatient(visit.visit_id)}>
+                              <UserPlus className="mr-2 h-4 w-4" />
+                              Convert to Inpatient
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -300,4 +375,4 @@ const HospitalVisitsPage = () => {
   );
 };
 
-export default HospitalVisitsPage;
+export default Visitstable;

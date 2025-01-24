@@ -1,10 +1,10 @@
 import AppSidebar from "@/components/app-sidebar"
+import PatientDetailsTable from "@/components/patientdetailstable";
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import Visitstable from "@/components/visittable";
 
 
-const Patients = () => {
+const Visits = () => {
     return (
         <SidebarProvider
         style={
@@ -16,10 +16,10 @@ const Patients = () => {
         <AppSidebar />
         <SidebarInset>
         <SidebarTrigger />
-            <Visitstable/>
+            <PatientDetailsTable/>
         </SidebarInset>
       </SidebarProvider>
     );
 }
 
-export default Patients;
+export default Visits;
