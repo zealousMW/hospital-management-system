@@ -1,11 +1,11 @@
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import { PatientChart } from "@/components/patientchart"
+import { PatientChart } from "@/components/dashboard/patientchart"
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, BedDouble, UserPlus, Users, TrendingUp, AlertCircle } from 'lucide-react'
-import RecentAct from "@/components/recentact"
-import { NonCommunicableDiseaseChart, OtherGraph1, OtherGraph2, OtherGraph3 } from "@/components/graphs"
+import RecentAct from "@/components/dashboard/recentactivities"
+//import { NonCommunicableDiseaseChart, OtherGraph1, OtherGraph2, OtherGraph3 } from "@/components/graphs"
 
 export default async function PrivatePage() {
   const patientStats = [
@@ -107,7 +107,7 @@ export default async function PrivatePage() {
                   <CardTitle>Non-Communicable Disease Visits</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <NonCommunicableDiseaseChart />
+                  
                 </CardContent>
               </Card>
               <Card>
@@ -115,7 +115,7 @@ export default async function PrivatePage() {
                   <CardTitle>Graph 1</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <OtherGraph1 />
+                
                 </CardContent>
               </Card>
               <Card>
@@ -123,7 +123,7 @@ export default async function PrivatePage() {
                   <CardTitle>Graph 2</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <OtherGraph2 />
+                  
                 </CardContent>
               </Card>
               <Card>
@@ -131,7 +131,7 @@ export default async function PrivatePage() {
                   <CardTitle>Graph 3</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <OtherGraph3 />
+                  
                 </CardContent>
               </Card>
             </div>

@@ -1,5 +1,6 @@
-import AppSidebar from "@/components/app-sidebar"
+
 import MedicineTable from "@/components/medicinetable";
+import AppSidebar from "@/components/sidebar/app-sidebar";
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
