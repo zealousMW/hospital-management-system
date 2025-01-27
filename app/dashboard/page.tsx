@@ -1,11 +1,35 @@
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import { PatientChart } from "@/components/dashboard/patientchart"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity, BedDouble, UserPlus, Users, TrendingUp, AlertCircle } from 'lucide-react'
-import RecentAct from "@/components/dashboard/recentactivities"
-//import { NonCommunicableDiseaseChart, OtherGraph1, OtherGraph2, OtherGraph3 } from "@/components/graphs"
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { PatientChart } from "@/components/dashboard/patientchart";
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Activity,
+  BedDouble,
+  UserPlus,
+  Users,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
+import RecentAct from "@/components/dashboard/recentactivities";
+import {
+  ERVisitsChart,
+  InpatientChart,
+  InpatientsAndOutpatientsChart,
+  NonCommunicableDiseaseChart,
+  RevenueExpensesChart,
+} from "@/components/dashboard/graphs/graphs";
+import Notifications from "@/components/dashboard/notifications";
 
 export default async function PrivatePage() {
   const patientStats = [
@@ -13,8 +37,6 @@ export default async function PrivatePage() {
       title: "Inpatients",
       value: 124,
       icon: BedDouble,
-
-
     },
     {
       title: "Outpatients",
@@ -31,8 +53,8 @@ export default async function PrivatePage() {
       value: 89,
       icon: Users,
     },
-  ]
-    
+  ];
+
   return (
     <SidebarProvider
       style={
@@ -44,14 +66,14 @@ export default async function PrivatePage() {
       <AppSidebar />
       <SidebarInset>
         <SidebarTrigger className="-ml-1" />
-        
+
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {patientStats.map((stat) => (
@@ -71,77 +93,49 @@ export default async function PrivatePage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
                 <CardHeader>
-                  <CardTitle><span>Trends</span>
-              <select 
-                className="text-sm border rounded p-1 float-right"
-               >
-                <option value="diseases">Diseases</option>
-                <option value="beds">Bed Utilization</option>
-                <option value="patients">Patient Flow</option>
-              </select></CardTitle>
+                  <CardTitle>
+                    <span>Trends</span>
+                    <select className="text-sm border rounded p-1 float-right">
+                      <option value="diseases">Diseases</option>
+                      <option value="beds">Bed Utilization</option>
+                      <option value="patients">Patient Flow</option>
+                    </select>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
                   <PatientChart />
-                  </CardContent>
-
-                </Card>
-                <Card className="col-span-3">
-                  <CardHeader>
-                    <CardTitle>Recents Activity</CardTitle>
-                  </CardHeader>
-                  <CardDescription>
-                    <p className="p-3">Recent activities in the system</p>
-                  </CardDescription>
-                  <CardContent>
-                    <RecentAct  />
-                  </CardContent>
-                </Card>
-              
+                </CardContent>
+              </Card>
+              <Card className="col-span-3">
+                <CardHeader>
+                  <CardTitle>Recents Activity</CardTitle>
+                </CardHeader>
+                <CardDescription>
+                  <p className="p-3">Recent activities in the system</p>
+                </CardDescription>
+                <CardContent>
+                  <RecentAct />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Non-Communicable Disease Visits</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Graph 1</CardTitle>
-                </CardHeader>
-                <CardContent>
-                
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Graph 2</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Graph 3</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  
-                </CardContent>
-              </Card>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
+              <NonCommunicableDiseaseChart />
+              <InpatientsAndOutpatientsChart />
+            </div>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
+              <RevenueExpensesChart />
+              <ERVisitsChart />
             </div>
           </TabsContent>
 
           <TabsContent value="notifications">
-            {/* Add your notifications content here */}
+            <Notifications />
           </TabsContent>
         </Tabs>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
