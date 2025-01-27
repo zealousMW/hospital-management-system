@@ -6,7 +6,7 @@
 // import { Button } from '@/components/ui/button'
 // import { signOutAction } from '../actions'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/sidebar/app-sidebar"
 
 export default async function PrivatePage() {
   // const supabase = await createClient()

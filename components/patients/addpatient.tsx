@@ -15,7 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 const formSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required" }),
   last_name: z.string().min(1, { message: "Last name is required" }),
-  date_of_birth: z.string().min(1, { message: "Date of birth is required" }),
+  age: z.number().min(0, { message: "Age is required" }),
   gender: z.string().min(1, { message: "Gender is required" }),
   contact_number: z.string().min(1, { message: "Contact number is required" }),
   email: z.string().email({ message: "Invalid email address" }).optional(),
@@ -37,7 +37,7 @@ const PatientRegistrationForm = () => {
     defaultValues: {
       first_name: '',
       last_name: '',
-      date_of_birth: '',
+      age: 0,
       gender: '',
       contact_number: '',
       email: '',
@@ -101,12 +101,12 @@ const PatientRegistrationForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="date_of_birth"
+                name="age"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
+                    <FormLabel>Age</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

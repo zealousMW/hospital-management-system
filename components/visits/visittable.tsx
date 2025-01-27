@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import AddVisitPage from './addvisits';
-import PatientRegistrationForm from './addpatient';
+import PatientRegistrationForm from '../patients/addpatient';
 import { Search, Hospital, MoreHorizontal, Eye, UserPlus, FileText } from 'lucide-react';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
@@ -191,7 +191,7 @@ const Visitstable = () => {
                 <DialogTrigger asChild>
                   <Button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={handleAddVisit}>Add Visit</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add New Visit</DialogTitle>
                     <DialogDescription>
@@ -201,18 +201,13 @@ const Visitstable = () => {
                   <div className="grid gap-4 py-4">
                     <AddVisitPage />
                   </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleDialogClose}>Close</Button>
-                    </DialogClose>
-                  </DialogFooter>
                 </DialogContent>
               </Dialog>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="bg-green-500 text-white px-4 py-2 rounded" onClick={handleRegisterPatient}>Register Patient</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Register New Patient</DialogTitle>
                     <DialogDescription>
@@ -222,11 +217,6 @@ const Visitstable = () => {
                   <div className="grid gap-4 py-4">
                     <PatientRegistrationForm />
                   </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleDialogClose}>Close</Button>
-                    </DialogClose>
-                  </DialogFooter>
                 </DialogContent>
               </Dialog>
             </div>

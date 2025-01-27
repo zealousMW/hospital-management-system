@@ -10,7 +10,7 @@ import {
   } from "@/components/ui/form"
   import { Input } from "@/components/ui/input"
 import { Control } from "react-hook-form";
-import { formF } from "./patient";
+import { formF } from "./loginpage";
 import Image from "next/image";
 import React, { useState } from 'react';
 

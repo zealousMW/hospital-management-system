@@ -1,5 +1,6 @@
 import AppSidebar from "@/components/sidebar/app-sidebar"
 import PatientDetailsTable from "@/components/patients/patientdetailstable";
+import PatientInformationDemo, { PatientInformation } from "@/components/patients/patientinformation";
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -16,7 +17,7 @@ const Visits = () => {
         <AppSidebar />
         <SidebarInset>
         <SidebarTrigger />
-            <PatientDetailsTable/>
+            <PatientInformationDemo/>
         </SidebarInset>
       </SidebarProvider>
     );

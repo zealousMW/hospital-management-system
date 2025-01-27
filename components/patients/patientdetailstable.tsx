@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Users2, MoreHorizontal, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import PatientRegistrationForm from './addpatient';
 
 interface Patient {
   patient_id: number;
@@ -102,6 +104,10 @@ const PatientDetailsTable = () => {
     return age;
   };
 
+  const handleViewDetails = (patientId: number) => {
+    window.location.href = `http://localhost:3000/info?patientId=${patientId}`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -120,9 +126,25 @@ const PatientDetailsTable = () => {
                 className="pl-8 w-[300px]"
               />
             </div>
-            <Button className="bg-green-500 text-white">
+            <Dialog>
+                <DialogTrigger asChild>
+                <Button className="bg-green-500 text-white">
               Add New Patient
             </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Register New Patient</DialogTitle>
+                    <DialogDescription>
+                      {/* Form elements for registering a new patient */}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <PatientRegistrationForm />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            
           </div>
         </div>
       </CardHeader>
@@ -208,7 +230,7 @@ const PatientDetailsTable = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(patient.patient_id)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
