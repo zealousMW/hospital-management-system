@@ -17,6 +17,7 @@ const formSchema = z.object({
   last_name: z.string().min(1, { message: "Last name is required" }),
   age: z.number().min(0, { message: "Age is required" }),
   gender: z.string().min(1, { message: "Gender is required" }),
+  place: z.string().min(1, { message: "Place is required" }),
   contact_number: z.string().min(1, { message: "Contact number is required" }),
   email: z.string().email({ message: "Invalid email address" }).optional(),
   address: z.string().optional(),
@@ -39,6 +40,7 @@ const PatientRegistrationForm = () => {
       last_name: '',
       age: 0,
       gender: '',
+      place: '',
       contact_number: '',
       email: '',
       address: '',
@@ -141,10 +143,10 @@ const PatientRegistrationForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="contact_number"
+                name="place"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Number</FormLabel>
+                    <FormLabel>Place</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -154,12 +156,12 @@ const PatientRegistrationForm = () => {
               />
               <FormField
                 control={form.control}
-                name="email"
+                name="contact_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Contact Number</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
