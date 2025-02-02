@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -143,7 +144,7 @@ export default function Screening() {
                                         <TableCell>{patient.gender}</TableCell>
                                         <TableCell>{patient.dateTime}</TableCell>
                                         <TableCell>
-                                            <Badge variant={patient.status === "Waiting" ? "secondary" : "primary"}>
+                                            <Badge variant={patient.status === "Waiting" ? "secondary" : "default"}>
                                                 {patient.status}
                                             </Badge>
                                         </TableCell>
