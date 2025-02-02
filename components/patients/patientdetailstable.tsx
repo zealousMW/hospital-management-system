@@ -13,6 +13,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import PatientRegistrationForm from './addpatient';
 import {
   Select,
+  
   SelectContent,
   SelectItem,
   SelectTrigger,
