@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const formattedData = outpatientvisits?.map((visit) => ({
+  const formattedData = outpatientvisits?.map((visit: any) => ({
     visit_id: visit.visit_id,
     name: visit.outpatient?.name || "No name provided",
     age: visit.outpatient?.age || "Age not specified",
