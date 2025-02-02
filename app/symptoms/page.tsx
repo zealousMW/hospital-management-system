@@ -1,8 +1,26 @@
+import Screening from "@/components/screening/screening";
+import AppSidebar from "@/components/sidebar/app-sidebar"
 
-const Symptoms = () => {
-  return (
-    <h1>Symptoms</h1>
-  )
+
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+
+
+const Visits = () => {
+    return (
+        <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "19rem",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar />
+        <SidebarInset>
+        <SidebarTrigger />
+            <Screening />
+        </SidebarInset>
+      </SidebarProvider>
+    );
 }
 
-export default Symptoms;
+export default Visits;

@@ -47,7 +47,7 @@ const menuGroups = [
         icon: ClipboardList,
       },
       {
-        title: "Symptoms & Diseases",
+        title: "Outpatients Screening",
         url: "/symptoms",
         icon: Activity,
       }

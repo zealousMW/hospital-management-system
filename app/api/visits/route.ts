@@ -21,7 +21,7 @@ export async function GET() {
       department:department (
       department_name
       )
-  `);
+  `).order('visit_date', { ascending: false });
 
 
   if (error) {
@@ -35,7 +35,8 @@ export async function GET() {
     age: visit.outpatient.age,
     gender: visit.outpatient.gender,
     date_of_visit: visit.visit_date,
-    department: visit.department.department_name,
+    department: visit.department?.department_name || "Not assigned",
+    cause_of_visit: visit.cause_of_visit || "Not specified"
   })) || [];
 
   return NextResponse.json(formatteddata);
