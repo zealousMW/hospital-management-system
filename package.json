@@ -27,7 +27,6 @@
     "@supabase/supabase-js": "latest",
     "@tanstack/react-table": "^8.20.6",
     "autoprefixer": "10.4.20",
-    "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
