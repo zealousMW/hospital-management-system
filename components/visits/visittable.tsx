@@ -24,11 +24,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface Visit {
   visit_id: number;
   patient_name: string;
-  primary_doctor: string;
   visit_date: string;
   status: string;
   department: string;
-  gender: string;  // Add gender to base interface
+  gender: string;
+  age: number;  // Add age to base interface
 }
 
 interface InpatientVisit extends Visit {
@@ -38,95 +38,42 @@ interface InpatientVisit extends Visit {
   current_status: string;
 }
 
-interface OutpatientVisit extends Visit {
-  visit_type: string;
+interface OutpatientVisit {
+  visit_id: number;
+  name: string;
+  age: number;
+  gender: string;
+  date_of_visit: string;
+  department: string;
 }
 
-// Add mock data constants at the top of the file, before the component
-const MOCK_INPATIENT_VISITS: InpatientVisit[] = [
-  {
-    visit_id: 1,
-    patient_name: 'John Doe',
-    primary_doctor: 'Dr. Smith',
-    visit_date: '2024-01-15',
-    admission_date: '2024-01-15',
-    expected_discharge_date: '2024-01-20',
-    status: 'Active',
-    bed_id: 101,
-    department: 'Cardiology',
-    current_status: 'Stable',
-    gender: 'Male'
-  },
-  {
-    visit_id: 2,
-    patient_name: 'Jane Smith',
-    primary_doctor: 'Dr. Johnson',
-    visit_date: '2024-01-18',
-    admission_date: '2024-01-18',
-    expected_discharge_date: '2024-01-25',
-    status: 'Critical',
-    bed_id: 205,
-    department: 'Intensive Care',
-    current_status: 'Critical',
-    gender: 'Female'
-  },
-  {
-    visit_id: 3,
-    patient_name: 'Robert Wilson',
-    primary_doctor: 'Dr. Brown',
-    visit_date: '2024-01-10',
-    admission_date: '2024-01-10',
-    expected_discharge_date: '2024-01-30',
-    status: 'Under Observation',
-    bed_id: 302,
-    department: 'Neurology',
-    current_status: 'Stable',
-    gender: 'Male'
+// Add API service functions
+const fetchOutpatientVisitsApi = async (): Promise<OutpatientVisit[]> => {
+  try {
+    const response = await fetch('/api/visits');
+    if (!response.ok) throw new Error('Failed to fetch outpatient visits');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching outpatient visits:', error);
+    // Return empty array or throw error based on your error handling strategy
+    return [];
   }
-];
+};
 
-const MOCK_OUTPATIENT_VISITS: OutpatientVisit[] = [
-  {
-    visit_id: 4,
-    patient_name: 'Alice Brown',
-    primary_doctor: 'Dr. Williams',
-    visit_date: '2024-01-20',
-    status: 'Scheduled',
-    department: 'General Medicine',
-    gender: 'Female',
-    visit_type: 'Follow-up'
-  },
-  {
-    visit_id: 5,
-    patient_name: 'Bob Miller',
-    primary_doctor: 'Dr. Garcia',
-    visit_date: '2024-01-19',
-    status: 'Completed',
-    department: 'Orthopedics',
-    gender: 'Male',
-    visit_type: 'Initial Visit'
-  },
-  {
-    visit_id: 6,
-    patient_name: 'Carol Davis',
-    primary_doctor: 'Dr. Lee',
-    visit_date: '2024-01-21',
-    status: 'Scheduled',
-    department: 'Dermatology',
-    gender: 'Female',
-    visit_type: 'Consultation'
-  },
-  {
-    visit_id: 7,
-    patient_name: 'David Wilson',
-    primary_doctor: 'Dr. Anderson',
-    visit_date: '2024-01-17',
-    status: 'Under Observation',
-    department: 'ENT',
-    gender: 'Male',
-    visit_type: 'Emergency'
+/*
+const fetchInpatientVisitsApi = async (): Promise<InpatientVisit[]> => {
+  try {
+    const response = await fetch('/api/visits/inpatient');
+    if (!response.ok) throw new Error('Failed to fetch inpatient visits');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching inpatient visits:', error);
+    return [];
   }
-];
+};
+*/
 
 const Visitstable = () => {
   const [inpatientVisits, setInpatientVisits] = useState<InpatientVisit[]>([]);
@@ -139,11 +86,11 @@ const Visitstable = () => {
   interface Visit {
     visit_id: number;
     patient_name: string;
-    primary_doctor: string;
     visit_date: string;
     status: string;
     department: string;
-    gender: string;  // Add gender to base interface
+    gender: string;
+    age: number;  // Add age to base interface
   }
 
   interface InpatientVisit extends Visit {
@@ -153,15 +100,20 @@ const Visitstable = () => {
     current_status: string;
   }
 
-  interface OutpatientVisit extends Visit {
-    visit_type: string;
+  interface OutpatientVisit {
+    visit_id: number;
+    name: string;
+    age: number;
+    gender: string;
+    date_of_visit: string;
+    department: string;
   }
 
   const isNewVisit = (visitDate: string): boolean => {
     const currentDate = new Date();
     const visitDateObj = new Date(visitDate);
-    const sevenDaysAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return visitDateObj >= sevenDaysAgo;
+    
+    return visitDateObj >= currentDate;
   };
 
   const handleRegisterPatient = () => {
@@ -186,9 +138,9 @@ const Visitstable = () => {
     // Add your view patient logic here
   };
 
-  const handleConvertToInpatient = async (visitId: number) => {
+  const handleConvertToInpatient = async (outpatientId: number) => {
     try {
-      const response = await fetch(`/api/visits/${visitId}/convert`, {
+      const response = await fetch(`/api/visits/${outpatientId}/convert`, {
         method: 'POST',
       });
       
@@ -201,8 +153,8 @@ const Visitstable = () => {
     }
   };
 
-  const handleViewDetails = (visitId: number) => {
-    console.log('View visit details:', visitId);
+  const handleViewDetails = (outpatientId: number) => {
+    console.log('View visit details:', outpatientId);
     // Add your view details logic here
   };
 
@@ -211,18 +163,23 @@ const Visitstable = () => {
   );
 
   const filteredOutpatientVisits = outpatientVisits.filter(visit =>
-    visit.patient_name.toLowerCase().includes(searchTerm.toLowerCase())
+    visit.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const fetchVisitsData = async () => {
     try {
       setLoading(true);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Commented out inpatient data fetch
+      /*
+      const [inpatientData, outpatientData] = await Promise.all([
+        fetchInpatientVisitsApi(),
+        fetchOutpatientVisitsApi()
+      ]);
+      setInpatientVisits(inpatientData);
+      */
       
-      // Use mock data instead of API calls
-      setInpatientVisits(MOCK_INPATIENT_VISITS);
-      setOutpatientVisits(MOCK_OUTPATIENT_VISITS);
+      const outpatientData = await fetchOutpatientVisitsApi();
+      setOutpatientVisits(outpatientData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching visits data:', err);
@@ -260,6 +217,7 @@ const Visitstable = () => {
   return (
     <>
       <div className="text-center mb-6">
+        <Hospital className="h-4 w-4 " />
         <h1 className="text-3xl font-bold">Hospital Visits </h1>
         <p className="text-sm text-gray-600">Track all visits here</p>
       </div>
@@ -267,11 +225,6 @@ const Visitstable = () => {
         <div className="flex-1 rounded-xl bg-muted/50 md:min-h-min" >
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Hospital className="h-4 w-4 " />
-                <span>Hospital Visits List</span>
-              </CardTitle>
-              <CardDescription className="mb-8">Track all visits here</CardDescription>
               <div className="flex justify-between items-center mb-4 mt-4">
                 <div className="relative w-1/3">
                   <Input
@@ -320,14 +273,115 @@ const Visitstable = () => {
               </div>
             </CardHeader>
             <CardContent className='overflow-x-auto'>
-              <Tabs defaultValue="inpatient">
+              <Tabs defaultValue="outpatient">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="inpatient">Inpatient Visits</TabsTrigger>
                   <TabsTrigger value="outpatient">Outpatient Visits</TabsTrigger>
+                  <TabsTrigger value="inpatient">Inpatient Visits</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="inpatient">
+                <TabsContent value="outpatient">
                   <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Visit ID</TableHead>
+                          <TableHead>Patient Name</TableHead>
+                          <TableHead>Gender</TableHead>
+                          <TableHead>Age</TableHead>
+                          <TableHead>Visit Date</TableHead>
+                          <TableHead>Department</TableHead>
+                          <TableHead>Old / New</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredOutpatientVisits.map((visit) => (
+                          <TableRow key={visit.visit_id} className="hover:bg-muted/50 transition-colors">
+                            <TableCell>{visit.visit_id}</TableCell>
+                            <TableCell>{visit.name}</TableCell>
+                            <TableCell>{visit.gender}</TableCell>
+                            <TableCell>{visit.age}</TableCell>
+                            <TableCell>{visit.date_of_visit}</TableCell>
+                            <TableCell>{visit.department}</TableCell>
+                            <TableCell>
+                              <Badge variant={isNewVisit(visit.date_of_visit) ? 'default' : 'secondary'}>
+                                {isNewVisit(visit.date_of_visit) ? 'New' : 'Old'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <TooltipProvider>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Actions menu</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleViewPatient(visit.visit_id)}>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div className="flex items-center">
+                                              <Eye className="mr-2 h-4 w-4" />
+                                              View Patient
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>View patient details</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleViewDetails(visit.visit_id)}>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div className="flex items-center">
+                                              <FileText className="mr-2 h-4 w-4" />
+                                              View Details
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>View visit details</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleConvertToInpatient(visit.visit_id)}>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div className="flex items-center">
+                                              <UserPlus className="mr-2 h-4 w-4" />
+                                              Convert to Inpatient
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Convert to inpatient</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TooltipProvider>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="inpatient">
+                  {/* <div className="rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -423,107 +477,9 @@ const Visitstable = () => {
                         ))}
                       </TableBody>
                     </Table>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="outpatient">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Visit ID</TableHead>
-                          <TableHead>Patient Name</TableHead>
-                          <TableHead>Gender</TableHead>
-                          <TableHead>Primary Doctor</TableHead>
-                          <TableHead>Visit Date</TableHead>
-                          <TableHead>Department</TableHead>
-                          <TableHead>Old / New</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredOutpatientVisits.map((visit) => (
-                          <TableRow key={visit.visit_id} className="hover:bg-muted/50 transition-colors">
-                            <TableCell>{visit.visit_id}</TableCell>
-                            <TableCell>{visit.patient_name}</TableCell>
-                            <TableCell>{visit.gender}</TableCell>
-                            <TableCell>{visit.primary_doctor}</TableCell>
-                            <TableCell>{visit.visit_date}</TableCell>
-                            <TableCell>{visit.department}</TableCell>
-                            <TableCell>
-                              <Badge variant={isNewVisit(visit.visit_date) ? 'default' : 'secondary'}>
-                                {isNewVisit(visit.visit_date) ? 'New' : 'Old'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <TooltipProvider>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                          <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Actions menu</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleViewPatient(visit.visit_id)}>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex items-center">
-                                              <Eye className="mr-2 h-4 w-4" />
-                                              View Patient
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>View patient details</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleViewDetails(visit.visit_id)}>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex items-center">
-                                              <FileText className="mr-2 h-4 w-4" />
-                                              View Details
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>View visit details</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleConvertToInpatient(visit.visit_id)}>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex items-center">
-                                              <UserPlus className="mr-2 h-4 w-4" />
-                                              Convert to Inpatient
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>Convert to inpatient</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TooltipProvider>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  </div> */}
+                  <div className="text-center py-8">
+                    <p className="text-lg font-semibold">Inpatient table is in progress...</p>
                   </div>
                 </TabsContent>
               </Tabs>

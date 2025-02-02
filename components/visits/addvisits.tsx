@@ -11,82 +11,53 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 
+
+interface FormData {
+    visit_date: Date;
+    notes: string;
+    mobile_number: string;
+    name: string;
+    age: string;
+    gender: string;
+    place: string;
+}
+
+interface Patient {
+    outpatient_id: number;
+    name: string;
+    number: string; // Changed from mobile_number to number to match API
+    place: string;
+    gender: string;
+    age: number;
+}
+
+const mockPatients: Patient[] = [
+    { outpatient_id: 1, number: "1234567890", name: "John Doe", age: 25, gender: "male", place: "New York" },
+    { outpatient_id: 2, number: "1234567890", name: "Jane Smith", age: 30, gender: "female", place: "Boston" },
+    { outpatient_id: 3, number: "9876543210", name: "Alice Johnson", age: 45, gender: "female", place: "Chicago" },
+    { outpatient_id: 4, number: "5555555555", name: "Bob Wilson", age: 35, gender: "male", place: "Miami" },
+];
+
+
+enum gender {
+    'm' = "male",
+    'f' = "female",
+    'o' = "other"
+};
+
 const AddVisitPage: React.FC = () => {
-    const [visitType, setVisitType] = useState<'Inpatient' | 'Outpatient'>('Outpatient');
     const [formData, setFormData] = useState<FormData>({
-        patient_id: '',
-        primary_doctor_id: '',
         visit_date: new Date(),
-        admission_date: new Date(),
-        expected_discharge_date: new Date(),
-        actual_discharge_date: new Date(),
-        status: 'Active',
         notes: '',
-        bed_id: '',
-        ward: ''
+        mobile_number: '',
+        name: '',
+        age: '',
+        gender: '',
+        place: ''
     });
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [patients, setPatients] = useState<Patient[]>([]);
-    const [doctors, setDoctors] = useState<Doctor[]>([]);
-    const [beds, setBeds] = useState<Bed[]>([]);
-    const [wards, setWards] = useState<string[]>(['Ward 1', 'Ward 2', 'Ward 3']);
-
-    // Mock Data
-    const mockDoctors: Doctor[] = [
-        { doctor_id: 1, first_name: 'John', last_name: 'Doe' },
-        { doctor_id: 2, first_name: 'Jane', last_name: 'Smith' },
-        { doctor_id: 3, first_name: 'Robert', last_name: 'Jones' },
-    ];
-
-    const mockBeds: Bed[] = [
-        { bed_id: 101, bed_number: 'A1', room_id: 'Room 1' },
-        { bed_id: 102, bed_number: 'A2', room_id: 'Room 1' },
-        { bed_id: 103, bed_number: 'B1', room_id: 'Room 2' },
-    ];
-
-    const mockPatients: Patient[] = [
-        { patient_id: 1, first_name: 'Alice', last_name: 'Brown', contact_number: '123-456-7890' },
-        { patient_id: 2, first_name: 'Bob', last_name: 'Charlie', contact_number: '123-456-7890' },
-        { patient_id: 3, first_name: 'David', last_name: 'Garcia', contact_number: '987-654-3210' },
-    ];
-
-    useEffect(() => {
-        // Load mock data instead of API calls
-        setDoctors(mockDoctors);
-        setBeds(mockBeds);
-    }, []);
-
-    interface FormData {
-        patient_id: string;
-        primary_doctor_id: string;
-        visit_date: Date;
-        admission_date: Date;
-        expected_discharge_date: Date;
-        actual_discharge_date: Date;
-        status: string;
-        notes: string;
-        bed_id: string;
-        ward: string;
-    }
-
-    interface Doctor {
-        doctor_id: number;
-        first_name: string;
-        last_name: string;
-    }
-
-    interface Bed {
-        bed_id: number;
-        bed_number: string;
-        room_id: string;
-    }
-
-    interface Patient {
-        patient_id: number;
-        first_name: string;
-        last_name: string;
-        contact_number: string;
-    }
+    
+    const [suggestions, setSuggestions] = useState<Patient[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -107,60 +78,51 @@ const AddVisitPage: React.FC = () => {
         }));
     };
 
-    const handleVisitTypeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setVisitType(e.target.checked ? 'Inpatient' : 'Outpatient');
-        // Reset admission and discharge dates when toggling the button
-        setFormData(prev => ({
-            ...prev,
-            admission_date: new Date(),
-            expected_discharge_date: new Date(),
-            actual_discharge_date: new Date(),
-            bed_id: ''
-        }));
-    };
+    const handleMobileNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setFormData(prev => ({ ...prev, mobile_number: value }));
 
-    const handleSearchByPhoneNumber = () => {
-        const filteredPatients = mockPatients.filter(
-            patient => patient.contact_number === phoneNumber
-        );
-        setPatients(filteredPatients);
-        if (filteredPatients.length === 1) {
-            setFormData(prev => ({ ...prev, patient_id: filteredPatients[0].patient_id.toString() }));
+        if (value.length >= 1) {
+            try {
+                const response = await fetch(`/api/patient?number=${value}`);
+                const data = await response.json();
+                console.log(data)
+                setSuggestions(data.outpatients); // Access the outpatients array from response
+                setShowSuggestions(true);
+            } catch (error) {
+                console.error('Error fetching patient suggestions:', error);
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
         } else {
-            setFormData(prev => ({ ...prev, patient_id: '' }));
+            setSuggestions([]);
+            setShowSuggestions(false);
         }
     };
 
-    const handlePatientSelect = (patientId: number) => {
-        setFormData(prev => ({ ...prev, patient_id: patientId.toString() }));
+    const handleSelectPatient = (patient: Patient) => {
+        // Map the gender from single letter to full word using the enum
+        const genderValue = patient.gender.toLowerCase() === 'm' ? 'male' :
+                       patient.gender.toLowerCase() === 'f' ? 'female' : 'other';
+    
+        setFormData(prev => ({
+            ...prev,
+            mobile_number: patient.number,
+            name: patient.name,
+            age: patient.age.toString(),
+            gender: genderValue,
+            place: patient.place
+        }));
+        setShowSuggestions(false);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validation
-        if (!formData.patient_id) {
-            alert('Please search for a patient by phone number and select one.');
-            return;
-        }
-        if (!formData.primary_doctor_id) {
-            alert('Please select a primary doctor.');
-            return;
-        }
-
-        if (visitType === 'Inpatient' && !formData.bed_id) {
-            alert('Please select a bed for inpatient visits.');
-            return;
-        }
-
         // Mock Submission
         const payload = {
             ...formData,
-            visit_type: visitType,
             visit_date: format(formData.visit_date, "yyyy-MM-dd"),
-            admission_date: visitType === 'Inpatient' ? format(formData.admission_date, "yyyy-MM-dd") : null,
-            expected_discharge_date: visitType === 'Inpatient' ? format(formData.expected_discharge_date, "yyyy-MM-dd") : null,
-            actual_discharge_date: visitType === 'Inpatient' ? format(formData.actual_discharge_date, "yyyy-MM-dd") : null,
         };
 
         console.log('Submitting visit with data:', payload);
@@ -168,86 +130,54 @@ const AddVisitPage: React.FC = () => {
 
         // Reset form after successful submission
         setFormData({
-            patient_id: '',
-            primary_doctor_id: '',
             visit_date: new Date(),
-            admission_date: new Date(),
-            expected_discharge_date: new Date(),
-            actual_discharge_date: new Date(),
-            status: 'Active',
             notes: '',
-            bed_id: '',
-            ward: ''
+            mobile_number: '',
+            name: '',
+            age: '',
+            gender: '',
+            place: ''
         });
-        setPhoneNumber('');
-        setPatients([]);
     };
 
     return (
         <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader>
-                <CardTitle>Add Visit</CardTitle>
-            </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Visit Type Toggle */}
-                    <div className="flex items-center space-x-2">
-                        <Label>Inpatient</Label>
-                        <Switch
-                            checked={visitType === 'Inpatient'}
-                            onCheckedChange={(checked) => setVisitType(checked ? 'Inpatient' : 'Outpatient')}
+                    {/* Mobile Number Search - Moved to top */}
+                    <div className="relative">
+                        <Label>Mobile Number</Label>
+                        <Input
+                            name="mobile_number"
+                            value={formData.mobile_number}
+                            onChange={handleMobileNumberChange}
+                            placeholder="Enter mobile number"
+                            className="w-full"
+                            autoComplete="off"  // Add this line to disable browser autocomplete
                         />
-                        <Label>Outpatient</Label>
-                    </div>
-
-                    {/* Patient Search by Phone Number */}
-                    <div>
-                        <Label>Patient Phone Number</Label>
-                        <div className="flex space-x-2">
-                            <Input
-                                type="tel"
-                                placeholder="Enter phone number"
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                            />
-                            <Button type="button" onClick={handleSearchByPhoneNumber}>Search</Button>
-                        </div>
-                        {patients.length > 0 && (
-                            <div>
-                                <Label>Select Patient:</Label>
-                                <ul>
-                                    {patients.map(patient => (
-                                        <li key={patient.patient_id}>
-                                            <Button
-                                                variant={formData.patient_id === patient.patient_id.toString() ? "secondary" : "outline"}
-                                                onClick={() => handlePatientSelect(patient.patient_id)}
-                                            >
-                                                {patient.first_name} {patient.last_name}
-                                            </Button>
-                                        </li>
-                                    ))}
-                                </ul>
+                        {showSuggestions && suggestions.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                {suggestions.map((patient) => (
+                                    <div
+                                        key={patient.outpatient_id}
+                                        className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
+                                        onClick={() => handleSelectPatient(patient)}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <div className="font-medium text-base text-gray-900">{patient.name}</div>
+                                                <div className="text-sm text-gray-500 mt-0.5">
+                                                    {patient.number}
+                                                </div>
+                                            </div>
+                                            <div className="text-sm text-gray-400">
+                                                {patient.age} yrs | {patient.gender} | {patient.place}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
-                    </div>
-
-                    {/* Primary Doctor */}
-                    <div>
-                        <Label>Primary Doctor</Label>
-                        <Select
-                            onValueChange={(value) => setFormData(prev => ({ ...prev, primary_doctor_id: value }))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Doctor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {doctors.map(doctor => (
-                                    <SelectItem key={doctor.doctor_id} value={doctor.doctor_id.toString()}>
-                                        {doctor.first_name} {doctor.last_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </div>
 
                     {/* Visit Date */}
@@ -284,177 +214,64 @@ const AddVisitPage: React.FC = () => {
                         </Popover>
                     </div>
 
-                    {/*Inpatient Specific Fields*/}
-                    {visitType === 'Inpatient' && (
-                        <>
-                            <div>
-                                <Label>Admission Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-[240px] justify-start text-left font-normal",
-                                                !formData.admission_date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            {formData.admission_date ? (
-                                                format(formData.admission_date, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <CalendarComponent
-                                            mode="single"
-                                            selected={formData.admission_date}
-                                            onSelect={(date) => handleDateChange('admission_date', date as Date)}
-                                            disabled={(date) =>
-                                                date > new Date()
-                                            }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            <div>
-                                <Label>Expected Discharge Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-[240px] justify-start text-left font-normal",
-                                                !formData.expected_discharge_date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            {formData.expected_discharge_date ? (
-                                                format(formData.expected_discharge_date, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <CalendarComponent
-                                            mode="single"
-                                            selected={formData.expected_discharge_date}
-                                            onSelect={(date) => handleDateChange('expected_discharge_date', date as Date)}
-                                            disabled={(date) =>
-                                                date < formData.admission_date
-                                            }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            <div>
-                                <Label>Actual Discharge Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-[240px] justify-start text-left font-normal",
-                                                !formData.actual_discharge_date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            {formData.actual_discharge_date ? (
-                                                format(formData.actual_discharge_date, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <CalendarComponent
-                                            mode="single"
-                                            selected={formData.actual_discharge_date}
-                                            onSelect={(date) => handleDateChange('actual_discharge_date', date as Date)}
-                                            disabled={(date) =>
-                                                date < formData.admission_date
-                                            }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            <div>
-                                <Label>Bed</Label>
-                                <Select
-                                    onValueChange={(value) => setFormData(prev => ({ ...prev, bed_id: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Bed" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {beds.map(bed => (
-                                            <SelectItem key={bed.bed_id} value={bed.bed_id.toString()}>
-                                                {bed.bed_number} (Room: {bed.room_id})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div>
-                                <Label>Ward</Label>
-                                <Select
-                                    onValueChange={(value) => setFormData(prev => ({ ...prev, ward: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Ward" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {wards.map(ward => (
-                                            <SelectItem key={ward} value={ward}>
-                                                {ward}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div>
-                                <Label>Status</Label>
-                                <Select
-                                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Active">Active</SelectItem>
-                                        <SelectItem value="Critical">Critical</SelectItem>
-                                        <SelectItem value="Under Observation">Under Observation</SelectItem>
-                                        <SelectItem value="Discharged">Discharged</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </>
-                    )}
-
                     {/* Common Fields (Priority, Status, Notes) */}
-                    {visitType === 'Outpatient' && (
-                        <>
-                            <div>
-                                <Label>Notes</Label>
-                                <Input
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                        </>
-                    )}
-
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Name</Label>
+                            <Input
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                placeholder="Enter patient name"
+                            />
+                        </div>
+                        <div>
+                            <Label>Age</Label>
+                            <Input
+                                name="age"
+                                type="number"
+                                value={formData.age}
+                                onChange={handleInputChange}
+                                placeholder="Enter age"
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label>Gender</Label>
+                            <Select
+                                value={formData.gender}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">Female</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Place</Label>
+                            <Input
+                                name="place"
+                                value={formData.place}
+                                onChange={handleInputChange}
+                                placeholder="Enter place"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <Label>Notes</Label>
+                        <Input
+                            name="notes"
+                            value={formData.notes}
+                            onChange={handleInputChange}
+                            placeholder="Enter notes"
+                        />
+                    </div>
                 </form>
             </CardContent>
             <CardFooter>
