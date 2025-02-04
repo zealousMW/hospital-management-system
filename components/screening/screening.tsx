@@ -143,21 +143,29 @@ export default function Screening() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredPatients.map((patient) => (
-                        <TableRow key={patient.visit_id}>
-                            <TableCell>{patient.visit_id}</TableCell>
-                            <TableCell>{patient.name}</TableCell>
-                            <TableCell>{patient.age}</TableCell>
-                            <TableCell>{patient.gender}</TableCell>
-                            <TableCell>{patient.date_of_visit}</TableCell>
-                            <TableCell>
-                                <Button onClick={() => handleAssign(patient)}>
-                                    <ClipboardList className="h-4 w-4 mr-2" />
-                                    Assign
-                                </Button>
+                    {filteredPatients.length > 0 ? (
+                        filteredPatients.map((patient) => (
+                            <TableRow key={patient.visit_id}>
+                                <TableCell>{patient.visit_id}</TableCell>
+                                <TableCell>{patient.name}</TableCell>
+                                <TableCell>{patient.age}</TableCell>
+                                <TableCell>{patient.gender}</TableCell>
+                                <TableCell>{patient.date_of_visit}</TableCell>
+                                <TableCell>
+                                    <Button onClick={() => handleAssign(patient)}>
+                                        <ClipboardList className="h-4 w-4 mr-2" />
+                                        Assign
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={6} className="text-center">
+                                No patients available
                             </TableCell>
                         </TableRow>
-                    ))}
+                    )}
                 </TableBody>
             </Table>
 

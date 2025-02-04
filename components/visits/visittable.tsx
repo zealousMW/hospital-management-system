@@ -71,7 +71,7 @@ const Visitstable = () => {
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  New Visit
+                  New Outpatient
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -96,32 +96,40 @@ const Visitstable = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVisits.map((visit) => (
-                  <TableRow key={visit.visit_id}>
-                    <TableCell>{visit.visit_id}</TableCell>
-                    <TableCell>{visit.name}</TableCell>
-                    <TableCell>{visit.age}</TableCell>
-                    <TableCell>{visit.department}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => console.log('View details:', visit.visit_id)}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => console.log('Convert to inpatient:', visit.visit_id)}
-                        >
-                          Convert
-                        </Button>
-                      </div>
+                {filteredVisits.length > 0 ? (
+                  filteredVisits.map((visit) => (
+                    <TableRow key={visit.visit_id}>
+                      <TableCell>{visit.visit_id}</TableCell>
+                      <TableCell>{visit.name}</TableCell>
+                      <TableCell>{visit.age}</TableCell>
+                      <TableCell>{visit.department}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => console.log('View details:', visit.visit_id)}
+                          >
+                            View
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => console.log('Convert to inpatient:', visit.visit_id)}
+                          >
+                            Convert
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No Outpatient today
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
