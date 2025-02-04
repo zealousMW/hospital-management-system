@@ -1,6 +1,5 @@
 import {
   Users,
-  UserCog,
   Building2,
   Bed,
   ClipboardList,
@@ -57,19 +56,14 @@ const menuGroups = [
     label: "Treatment",
     items: [
       {
-        title: "Medications",
+        title: "pharmacy",
         url: "/medications",
         icon: Pill,
       },
       {
-        title: "checking",
+        title: "diagnosis",
         url: "/checking",
         icon: Syringe,
-      },
-      {
-        title: "Prescriptions",
-        url: "/prescriptions",
-        icon: FileText,
       }
     ]
   },
@@ -82,24 +76,9 @@ const menuGroups = [
         icon: Building2,
       },
       {
-        title: "Beds & Rooms",
-        url: "/beds",
-        icon: Bed,
-      },
-      {
         title: "Referrals",
         url: "/referrals",
         icon: ArrowRightLeft,
-      }
-    ]
-  },
-  {
-    label: "Staff",
-    items: [
-      {
-        title: "Doctors",
-        url: "/doctors",
-        icon: UserCog,
       }
     ]
   }
