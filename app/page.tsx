@@ -21,10 +21,14 @@ export default async function Home() {
               <h1 className="mb-8 text-2xl font-bold text-gray-900">Siddha Hospital</h1>
             </div>
             <Patient />
-            <div className="mt-8 flex justify-end text-sm text-gray-600">
-              <Link href="/?admin=true" className="text-blue-600 hover:text-blue-700 font-medium">
+            <div className="mt-8 flex flex-col gap-4">
+              <Link href="/?admin=true" className="text-blue-600 hover:text-blue-700 font-medium self-end">
                 Admin Login
               </Link>
+              <div className="text-center text-xs text-gray-500">
+                <p>© 2024 Siddha Hospital. All rights reserved.</p>
+                <p>Licensed </p>
+              </div>
             </div>
           </div>
           
