@@ -332,6 +332,14 @@
   .date-picker {
     @apply overflow-hidden border-transparent w-full placeholder:text-dark-600  h-11 text-14-medium rounded-md px-3 outline-none !important;
   }
+
+  .input-shadow {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .input-focus {
+    @apply ring-2 ring-blue-600 ring-offset-2 ring-offset-white;
+  }
 }
 
 /* =====  REACT-DATEPICKER OVERRIDES */

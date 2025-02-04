@@ -7,41 +7,27 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import CustomForm from "./customForm"
 import { useToast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 import { ToastAction } from "@/components/ui/toast"
 import { signInAction } from "@/app/actions"
-
-
-
-export enum formF {
-  INPUT = "input",
-  TEXTAREA = "textarea",
-  SELECT = "select",
-  CHECKBOX = "checkbox",
-  PASS = "password"
-
-}
+import Image from "next/image"
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Username must be at least 2 characters.",
   }),
-  password: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
   }),
 })
 
-const Patient = () =>{
-  // 1. Define your form.
+const Patient = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,56 +38,97 @@ const Patient = () =>{
   const { toast } = useToast()
  
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    const error = await signInAction(values);
-    if(error){console.log(values)
-    toast({
-      variant: "destructive",
-      className: "bg-red-500",
-      description: "There was a problem with your request.",
-      action: <ToastAction altText="Try again">Try again</ToastAction>,
-    });}
-
-
+    try {
+      const error = await signInAction(values);
+      if(error) {
+        toast({
+          variant: "destructive",
+          className: "bg-red-500",
+          description: "Invalid username or password",
+          action: <ToastAction altText="Try again">Try again</ToastAction>,
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        className: "bg-red-500",
+        description: "An error occurred. Please try again.",
+      });
+    }
   }
-
-
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-6">
-        <section className="mb-12 space-y-4">
-          <h1 className="header">Login</h1>
-          <p className="text-light-300">
-            Welcome back! Please login to your account.
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <section className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to Siddha Hospital</h1>
+          <p className="mt-2 text-gray-600">
+            Please login to access your medical dashboard
           </p>
-
         </section>
-        <CustomForm
-        formFields={formF.INPUT}
-        control={form.control}
-        name="name"
-        label="Username"
-        placeholder="Enter Username" 
-        iconSrc="/asserts/icon/user.svg"
-        iconAlt="Username"
-        />
-        <CustomForm
-          formFields={formF.PASS}
-
-          control={form.control}
-          name="password"
-          label="Password"
-          placeholder="Enter Password"
-          iconSrc="/asserts/icon/pass.svg"
-          iconAlt="pass"
-
-          
-
-        />
         
-        <Button variant="default" type="submit" className="bg-black text-white">Login</Button>
+        <div className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Image
+                      src="/asserts/icon/user.svg"
+                      alt="Username"
+                      width={20}
+                      height={20}
+                      className="absolute left-3 top-1/2 -translate-y-1/2"
+                    />
+                    <Input 
+                      placeholder="Enter your username" 
+                      className="pl-10 h-12 border-gray-200 focus-visible:ring-2 focus-visible:ring-blue-600"
+                      {...field} 
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Image
+                      src="/asserts/icon/pass.svg"
+                      alt="Password"
+                      width={20}
+                      height={20}
+                      className="absolute left-3 top-1/2 -translate-y-1/2"
+                    />
+                    <Input 
+                      type="password"
+                      placeholder="Enter your password" 
+                      className="pl-10 h-12 border-gray-200 focus-visible:ring-2 focus-visible:ring-blue-600"
+                      {...field} 
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            Sign In
+          </Button>
+        </div>
       </form>
     </Form>
   )
