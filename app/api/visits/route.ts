@@ -19,6 +19,7 @@ export async function GET() {
         department_name
       )
     `)
+    .eq('visit_date', new Date().toISOString().split('T')[0])
     .order('visit_date', { ascending: false });
 
   if (error) {

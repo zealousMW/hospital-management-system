@@ -48,7 +48,7 @@ const menuGroups = [
       },
       {
         title: "Outpatients Screening",
-        url: "/symptoms",
+        url: "/screening",
         icon: Activity,
       }
     ]
@@ -62,8 +62,8 @@ const menuGroups = [
         icon: Pill,
       },
       {
-        title: "Treatments",
-        url: "/treatments",
+        title: "checking",
+        url: "/checking",
         icon: Syringe,
       },
       {
