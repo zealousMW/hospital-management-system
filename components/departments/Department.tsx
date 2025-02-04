@@ -1,14 +1,44 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { PhoneIcon, MapPinIcon, CheckCircleIcon, XCircleIcon, EditIcon, PlusCircleIcon, Stethoscope } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  PhoneIcon,
+  MapPinIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  EditIcon,
+  PlusCircleIcon,
+  Stethoscope,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Department {
   department_id: number;
@@ -32,25 +62,41 @@ export default function Department() {
     description: "",
   });
 
+  const options = [
+    { value: "UG", label: "Undergraduate" },
+    { value: "PG", label: "Postgraduate" },
+    { value: "special", label: "Special Program" },
+  ];
+
+  const searchParams = useSearchParams();
+  const initialSelected = searchParams.get("department_type") || "UG";
+  const [selected, setSelected] = useState(initialSelected);
+
   useEffect(() => {
     fetchDepartments();
-  }, []);
+  }, [selected]);
 
   const fetchDepartments = async () => {
-    try {
-      const response = await fetch('/api/departmentApi');
-      const data = await response.json();
-      setDepartments(data);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
+    // try {
+    //   const response = await fetch("/api/departmentApi");
+    //   const data = await response.json();
+    //   setDepartments(data);
+    // } catch (error) {
+    //   console.error("Error fetching departments:", error);
+    // }
+
+    // Send GET request when selection changes
+    fetch(`/api/departmentApi?department_type=${selected}`)
+      .then((res) => res.json())
+      .then((data) => setDepartments(data))
+      .catch((err) => console.error("Error fetching data:", err));
   };
 
   const handleAdd = async () => {
     try {
-      const response = await fetch('/api/departmentApi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/departmentApi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newDepartment),
       });
 
@@ -64,7 +110,7 @@ export default function Department() {
         });
       }
     } catch (error) {
-      console.error('Error adding department:', error);
+      console.error("Error adding department:", error);
     }
   };
 
@@ -74,12 +120,12 @@ export default function Department() {
         department_id: id,
         department_name: "Updated Department",
         department_type: "Updated Type",
-        description: "Updated description"
+        description: "Updated description",
       };
 
-      const response = await fetch('/api/departmentApi', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/departmentApi", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
 
@@ -87,14 +133,14 @@ export default function Department() {
         fetchDepartments();
       }
     } catch (error) {
-      console.error('Error updating department:', error);
+      console.error("Error updating department:", error);
     }
   };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Hospital Departments</h1>
-      
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button className="mb-4 bg-green-500 hover:bg-green-600">
@@ -111,20 +157,24 @@ export default function Department() {
               <Input
                 id="name"
                 value={newDepartment.department_name}
-                onChange={(e) => setNewDepartment({
-                  ...newDepartment,
-                  department_name: e.target.value
-                })}
+                onChange={(e) =>
+                  setNewDepartment({
+                    ...newDepartment,
+                    department_name: e.target.value,
+                  })
+                }
               />
             </div>
             <div>
               <Label htmlFor="type">Department Type</Label>
               <Select
                 value={newDepartment.department_type}
-                onValueChange={(value) => setNewDepartment({
-                  ...newDepartment,
-                  department_type: value
-                })}
+                onValueChange={(value) =>
+                  setNewDepartment({
+                    ...newDepartment,
+                    department_type: value,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -143,10 +193,12 @@ export default function Department() {
               <Textarea
                 id="description"
                 value={newDepartment.description}
-                onChange={(e) => setNewDepartment({
-                  ...newDepartment,
-                  description: e.target.value
-                })}
+                onChange={(e) =>
+                  setNewDepartment({
+                    ...newDepartment,
+                    description: e.target.value,
+                  })
+                }
               />
             </div>
             <Button onClick={handleAdd} className="w-full">
@@ -155,6 +207,36 @@ export default function Department() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <div className="flex items-center justify-center bg-white dark:bg-gray-900 p-2 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+        <RadioGroup
+          defaultValue={selected}
+          onValueChange={setSelected}
+          className="flex justify-between gap-8"
+        >
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => setSelected(option.value)}
+              className={cn(
+                "cursor-pointer text-lg font-medium px-4 py-2 ms-5 rounded-lg transition-all",
+                selected === option.value
+                  ? "bg-blue-500 text-white shadow-md"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+              )}
+            >
+              <RadioGroupItem
+                value={option.value}
+                id={option.value}
+                className="hidden"
+              />
+              <Label htmlFor={option.value} className="cursor-pointer">
+                {option.label}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
 
       <Card className="shadow-lg">
         <CardContent>

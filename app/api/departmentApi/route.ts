@@ -30,9 +30,11 @@ export async function POST(req: NextRequest) {
     }
   }
   
-export async function GET() {
-    try {
-      const { data, error } = await supabase.from(tableName).select("*"); 
+export async function GET(req:NextRequest) {
+   try {
+    const { searchParams } = new URL(req.url);
+    const paramValue = searchParams.get('department_type');
+    const { data, error } = await supabase.from(tableName).select("*").eq("department_type",paramValue); 
   
       if (error) throw error;
   

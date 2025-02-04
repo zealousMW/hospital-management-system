@@ -8,8 +8,8 @@ import {
   FileText,
   Syringe,
   ArrowRightLeft,
-  LayoutDashboard
-} from 'lucide-react'
+  LayoutDashboard,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const menuGroups = [
   {
@@ -29,8 +29,8 @@ const menuGroups = [
         title: "Dashboard",
         url: "/dashboard",
         icon: LayoutDashboard,
-      }
-    ]
+      },
+    ],
   },
   {
     label: "Patient Care",
@@ -41,16 +41,16 @@ const menuGroups = [
         icon: Users,
       },
       {
-        title: "Visits",
-        url: "/visits",
+        title: "Outpatients Registration",
+        url: "/op_registration",
         icon: ClipboardList,
       },
       {
         title: "Outpatients Screening",
         url: "/screening",
         icon: Activity,
-      }
-    ]
+      },
+    ],
   },
   {
     label: "Treatment",
@@ -64,8 +64,8 @@ const menuGroups = [
         title: "diagnosis",
         url: "/checking",
         icon: Syringe,
-      }
-    ]
+      },
+    ],
   },
   {
     label: "Facility",
@@ -79,14 +79,14 @@ const menuGroups = [
         title: "Referrals",
         url: "/referrals",
         icon: ArrowRightLeft,
-      }
-    ]
-  }
-]
+      },
+    ],
+  },
+];
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" variant="floating" >
+    <Sidebar collapsible="icon" variant="floating">
       <SidebarContent>
         {menuGroups.map((group) => (
           <SidebarGroup key={group.label}>
@@ -109,7 +109,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
 
-export default AppSidebar
+export default AppSidebar;
