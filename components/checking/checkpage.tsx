@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSearchParams } from "next/navigation";
 
 interface Patient {
   id: number;
@@ -72,6 +73,8 @@ const CheckPage = () => {
   const [selectedSubtype, setSelectedSubtype] = useState<string>("");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const [isInpatientopen, setIsInpatientopen] = useState(false);
 
   useEffect(() => {
     const fetchMedicines = async () => {
@@ -94,7 +97,10 @@ const CheckPage = () => {
     const fetchPatients = async () => {
       setIsTableLoading(true);
       try {
-        const response = await fetch("/api/check");
+        const department_id = searchParams.get("department_id");
+        const response = await fetch(
+          `/api/check/?department_id=${department_id}`
+        );
         const data = await response.json();
         setPatients(
           data.map((patient: any) => ({
@@ -134,6 +140,11 @@ const CheckPage = () => {
     setLabTests([]);
     setDiagnosis("");
   };
+
+  // const handleInpatients = (patient: Patient) => {
+  //   setSelectedPatient(patient);
+  //   setIsInpatientopen(true);
+  // };
 
   const handleSubmitPrescription = async () => {
     if (!selectedPatient) return;
@@ -272,7 +283,23 @@ const CheckPage = () => {
                           onClick={() => handleProceed(patient)}
                         >
                           <ArrowRight className="h-4 w-4 mr-2" />
-                          Proceed
+                          Treatment
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleProceed(patient)}
+                        >
+                          <ArrowRight className="h-4 w-4 mr-2" />
+                          Refferal OP
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleProceed(patient)}
+                        >
+                          <ArrowRight className="h-4 w-4 mr-2" />
+                          Convert Inpatient
                         </Button>
                       </div>
                     </TableCell>
@@ -381,7 +408,7 @@ const CheckPage = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Label>Days:</Label>
+                      <Label>Tablets:</Label>
                       <Input
                         type="number"
                         value={med.days}

@@ -71,7 +71,7 @@ export default function Department() {
   const searchParams = useSearchParams();
   const initialSelected = searchParams.get("department_type") || "UG";
   const [selected, setSelected] = useState(initialSelected);
-
+  const router = useRouter();
   useEffect(() => {
     fetchDepartments();
   }, [selected]);
@@ -86,7 +86,7 @@ export default function Department() {
     // }
 
     // Send GET request when selection changes
-    fetch(`/api/departmentApi?department_type=${selected}`)
+    await fetch(`/api/departmentApi?department_type=${selected}`)
       .then((res) => res.json())
       .then((data) => setDepartments(data))
       .catch((err) => console.error("Error fetching data:", err));
@@ -115,26 +115,36 @@ export default function Department() {
   };
 
   const handleEdit = async (id: number) => {
-    try {
-      const updateData = {
-        department_id: id,
-        department_name: "Updated Department",
-        department_type: "Updated Type",
-        description: "Updated description",
-      };
-
-      const response = await fetch("/api/departmentApi", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-
-      if (response.ok) {
-        fetchDepartments();
-      }
-    } catch (error) {
-      console.error("Error updating department:", error);
-    }
+    // try {
+    //   const updateData = {
+    //     department_id: id,
+    //     department_name: "Updated Department",
+    //     department_type: "Updated Type",
+    //     description: "Updated description",
+    //   };
+    //   const response = await fetch("/api/departmentApi", {
+    //     method: "PATCH",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(updateData),
+    //   });
+    //   if (response.ok) {
+    //     fetchDepartments();
+    //   }
+    // } catch (error) {
+    //   console.error("Error updating department:", error);
+    // }
+    // try {
+    //   await fetch(`/api/departmentApi?department_id=${id}`)
+    //   .then((res) => res.json())
+    //   .then((data) => setDepartments(data))
+    //   .catch((err) => console.error("Error fetching data:", err));
+    // } catch (error) {
+    //   console.log("Error in get department:",error);
+    // }
+    const params = new URLSearchParams(searchParams);
+    params.set("department_id", id.toString()); // Update query param
+    router.push(`/checking?${params.toString()}`);
+    //window.location.href = `/checking/${id}`;
   };
 
   return (
@@ -247,7 +257,7 @@ export default function Department() {
                 <TableHead>Department Name</TableHead>
                 <TableHead>Department Type</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Treatments</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

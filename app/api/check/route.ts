@@ -1,10 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-export async function GET() {
+export async function GET(req:NextRequest) {
     const supabase = await createClient();
 
-    const { data: outpatientvisits, error } = await supabase
+    const { searchParams } = new URL(req.url);
+    const department_id = searchParams.get('department_id');
+    if(department_id!==null){
+        const { data: outpatientvisits, error } = await supabase
         .from('outpatientvisit')
         .select(`
       visit_id,
@@ -20,6 +23,7 @@ export async function GET() {
       )
     `)
         .eq('visit_date', new Date().toLocaleDateString('en-CA'))
+        .eq('assigned_department',department_id)
         .not('assigned_department', 'is', null) // Change here
         .order('visit_date', { ascending: false });
 
@@ -28,7 +32,6 @@ export async function GET() {
         console.error('GET: Error fetching visits:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
     const formattedData = outpatientvisits?.map((visit: any) => ({
         visit_id: visit.visit_id,
         name: visit.outpatient?.name || "No name provided",
@@ -40,6 +43,10 @@ export async function GET() {
     })) || [];
 
     return NextResponse.json(formattedData);
+    }
+    
+
+    
 }
 
 export async function PUT(request: Request) {

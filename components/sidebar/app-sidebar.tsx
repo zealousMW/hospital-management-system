@@ -60,11 +60,11 @@ const menuGroups = [
         url: "/medications",
         icon: Pill,
       },
-      {
-        title: "diagnosis",
-        url: "/checking",
-        icon: Syringe,
-      },
+      // {
+      //   title: "diagnosis",
+      //   url: "/checking",
+      //   icon: Syringe,
+      // },
     ],
   },
   {
