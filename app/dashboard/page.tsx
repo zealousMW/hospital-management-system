@@ -1,3 +1,4 @@
+"use client";
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -13,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Activity,
   BedDouble,
@@ -20,7 +23,9 @@ import {
   Users,
   TrendingUp,
   AlertCircle,
+  ReceiptText,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import RecentAct from "@/components/dashboard/recentactivities";
 import {
   ERVisitsChart,
@@ -30,8 +35,42 @@ import {
   RevenueExpensesChart,
 } from "@/components/dashboard/graphs/graphs";
 import Notifications from "@/components/dashboard/notifications";
+import { useEffect, useState } from "react";
 
-export default async function PrivatePage() {
+export default function PrivatePage() {
+  interface Stat {
+    department_name: string;
+    department_type: string;
+    total_visits_today: number;
+    total_visits_overall: number;
+    total_male_visits: number;
+    total_female_visits: number;
+  }
+
+  const [stats, setStats] = useState<Stat[]>([]);
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedType, setSelectedType] = useState("UG");
+
+  const filteredStats = stats.filter(
+    (stat) => stat.department_type === selectedType
+  );
+  useEffect(() => {
+    Counts();
+  }, []);
+  const Counts = async () => {
+    try {
+      const response = await fetch("/api/countapi");
+      const data = await response.json();
+      setStats(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  const options = [
+    { value: "UG", label: "Undergraduate" },
+    { value: "PG", label: "Postgraduate" },
+    { value: "special", label: "Special Program" },
+  ];
   const patientStats = [
     {
       title: "Inpatients",
@@ -90,6 +129,60 @@ export default async function PrivatePage() {
                 </Card>
               ))}
             </div>
+            <div className="p-8 bg-gray-50">
+              <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">
+                Department-wise Patients Count : {today}
+              </h1>
+              <div className="flex items-center justify-center bg-white dark:bg-gray-900 p-2 m-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                <RadioGroup
+                  defaultValue={selectedType}
+                  onValueChange={setSelectedType}
+                  className="flex justify-between gap-8"
+                >
+                  {options.map((option) => (
+                    <div
+                      key={option.value}
+                      onClick={() => setSelectedType(option.value)}
+                      className={cn(
+                        "cursor-pointer text-lg font-medium px-4 py-2 ms-5 rounded-lg transition-all",
+                        selectedType === option.value
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                      )}
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={option.value}
+                        className="hidden"
+                      />
+                      <Label htmlFor={option.value} className="cursor-pointer">
+                        {option.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {filteredStats.map((stat) => (
+                  <Card key={stat.department_name}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-2xl font-bold">
+                        {stat.department_name}
+                      </CardTitle>
+                      {/* <ReceiptText className="h-5 w-5 text-muted-foreground" /> */}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-1xl font-semibold flex space-x-2">
+                        <p> Male - {stat.total_male_visits} </p>
+                        <p>Female- {stat.total_female_visits}</p>
+                        <p>Total - {stat.total_visits_today}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
                 <CardHeader>

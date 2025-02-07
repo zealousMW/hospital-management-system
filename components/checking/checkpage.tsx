@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -8,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { number, z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
+
+import { useForm } from "react-hook-form";
 
 interface Patient {
   id: number;
@@ -75,6 +79,23 @@ const CheckPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const [isInpatientopen, setIsInpatientopen] = useState(false);
+  //const [Inpatient, setInpatient] = useState<InPatient[]>([]);
+  const outpatientIdRef = useRef<HTMLInputElement>(null);
+  const [opdetails, setOpdetails] = useState({
+    outpatient_id: "",
+    name: "",
+    age: "",
+    gender: "",
+    number: "",
+    place: "",
+  });
+  const [inpatientData, setInpatientData] = useState({
+    aadhaar_no: "",
+    address: "",
+    ward_no: "",
+    bed_no: "",
+    discharge_date: "",
+  });
 
   useEffect(() => {
     const fetchMedicines = async () => {
@@ -141,10 +162,24 @@ const CheckPage = () => {
     setDiagnosis("");
   };
 
-  // const handleInpatients = (patient: Patient) => {
-  //   setSelectedPatient(patient);
-  //   setIsInpatientopen(true);
-  // };
+  const handleChange = (e: any) => {
+    setInpatientData({ ...inpatientData, [e.target.name]: e.target.value });
+  };
+
+  const handleInpatients = async (patient: Patient) => {
+    setSelectedPatient(patient);
+    console.log(patient.id);
+    try {
+      const response = await fetch(
+        `api/singleoutpatient/?outpatientvisit_id=${patient.id}`
+      );
+      const data = await response.json();
+      setOpdetails(data[0].outpatient);
+      setIsInpatientopen(true);
+    } catch (error) {
+      console.log("Error occured in Fetching patient data:", error);
+    }
+  };
 
   const handleSubmitPrescription = async () => {
     if (!selectedPatient) return;
@@ -190,6 +225,7 @@ const CheckPage = () => {
     };
 
     console.log(prescriptionData);
+    setPatients([]);
     setIsPrescriptionOpen(false);
   };
 
@@ -220,6 +256,46 @@ const CheckPage = () => {
       (sub) => sub.medicine_id.toString() === medicineId
     );
     return subtype?.stock_quantity || 0;
+  };
+
+  const handleInpatientSubmit = async (e: any) => {
+    e.preventDefault();
+    console.log(inpatientData);
+    if (!outpatientIdRef.current) {
+      console.log("Ref is not attached");
+      return;
+    }
+    const outpatient_id = outpatientIdRef.current.value;
+    const data = { outpatient_id, ...inpatientData };
+    try {
+      await fetch("/api/inpatientapi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          outpatient_id: data.outpatient_id,
+          aadhaar_no: data.aadhaar_no,
+          address: data.address,
+          ward_no: data.ward_no,
+          bed_no: data.bed_no,
+          discharge_date: data.discharge_date,
+        }),
+      })
+        .then((response) => response.json())
+        .then((result) => console.log(result))
+        .catch((err) => console.log(err));
+    } catch (error) {
+      console.log("Error occured in Create inpatient data:", error);
+    }
+    outpatientIdRef.current.value = "";
+    setPatients([]);
+    setInpatientData({
+      aadhaar_no: "",
+      address: "",
+      ward_no: "",
+      bed_no: "",
+      discharge_date: "",
+    });
+    setIsInpatientopen(false);
   };
 
   return (
@@ -296,7 +372,7 @@ const CheckPage = () => {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleProceed(patient)}
+                          onClick={() => handleInpatients(patient)}
                         >
                           <ArrowRight className="h-4 w-4 mr-2" />
                           Convert Inpatient
@@ -490,6 +566,82 @@ const CheckPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmitPrescription}>Submit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isInpatientopen} onOpenChange={setIsInpatientopen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Convert as Inpatient</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4">
+            <div>
+              <Label htmlFor="outpatient_id">Outpatient ID</Label>
+              <Input
+                type="text"
+                value={opdetails.outpatient_id}
+                name="outpatient_id"
+                ref={outpatientIdRef}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="aadhaar_no">Aadhaar Number *</Label>
+              <Input
+                type="text"
+                name="aadhaar_no"
+                value={inpatientData.aadhaar_no}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Address *</Label>
+              <Input
+                type="text"
+                name="address"
+                value={inpatientData.address}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="ward_no">Ward Number *</Label>
+              <Input
+                type="text"
+                name="ward_no"
+                value={inpatientData.ward_no}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="bed_no">Bed Number *</Label>
+              <Input
+                type="text"
+                name="bed_no"
+                value={inpatientData.bed_no}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="discharge_date">Discharge Date *</Label>
+              <Input
+                type="date"
+                name="discharge_date"
+                value={inpatientData.discharge_date}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </form>
+
+          <DialogFooter>
+            <Button variant="outline">Cancel</Button>
+            <Button onClick={handleInpatientSubmit}>Submit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
