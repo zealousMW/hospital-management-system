@@ -14,8 +14,8 @@ export async function GET() {
     department_name,
     outpatientvisits: outpatientvisit(count),
     todayvisits: outpatientvisit(count).filter(visit_date,eq.${today}),
-    male_visits: outpatientvisit(count).filter(outpatient_id, eq, outpatient.id).filter(outpatient.gender,eq.M),
-    female_visits: outpatientvisit(count).filter(outpatient_id, eq, outpatient.id).filter(outpatient.gender,eq.F)
+    male_visits: outpatientvisit(count).filter(outpatient_id, eq.outpatient.id).filter(outpatient.gender,eq.M),
+    female_visits: outpatientvisit(count).filter(outpatient_id, eq.outpatient.id).filter(outpatient.gender,eq.F)
   `
       )
       .order("department_name");

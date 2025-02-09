@@ -33,6 +33,7 @@ import {
 import { useSearchParams } from "next/navigation";
 
 import { useForm } from "react-hook-form";
+import { set } from "date-fns";
 
 interface Patient {
   id: number;
@@ -41,15 +42,6 @@ interface Patient {
   age: number;
   gender: string;
   cause: string;
-}
-
-interface Medication {
-  type: string;
-  subtype: string;
-  dosageType: "child" | "adult";
-  dosage: string;
-  days: number;
-  medicineId: number;
 }
 
 interface LabTest {
@@ -62,6 +54,18 @@ interface Medicine {
   medicine_name: string;
   medicine_type: string;
   stock_quantity: string;
+  dosageUnit: string;
+}
+
+interface MedicationEntry {
+  type: string;
+  subtype: string;
+  medicineId: number;
+  category: string;
+  dosageValue: string;
+  dosageUnit: string;
+  dosageType: string;
+  dosagetiming: string;
 }
 
 const CheckPage = () => {
@@ -69,13 +73,13 @@ const CheckPage = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isTableLoading, setIsTableLoading] = useState(true);
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
-  const [medications, setMedications] = useState<Medication[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medications, setMedications] = useState<MedicationEntry[]>([]);
   const [labTests, setLabTests] = useState<LabTest[]>([]);
   const [diagnosis, setDiagnosis] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedMedicineType, setSelectedMedicineType] = useState<string>("");
   const [selectedSubtype, setSelectedSubtype] = useState<string>("");
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const [isInpatientopen, setIsInpatientopen] = useState(false);
@@ -162,6 +166,19 @@ const CheckPage = () => {
     setDiagnosis("");
   };
 
+  const handleMedicationChange = (
+    index: number,
+    field: keyof MedicationEntry,
+    value: string
+  ) => {
+    const updatedMedications = [...medications];
+    updatedMedications[index] = {
+      ...updatedMedications[index],
+      [field]: value as MedicationEntry[typeof field], // Type Assertion Fix
+    };
+    setMedications(updatedMedications);
+  };
+
   const handleChange = (e: any) => {
     setInpatientData({ ...inpatientData, [e.target.name]: e.target.value });
   };
@@ -188,7 +205,7 @@ const CheckPage = () => {
       const medicine = medicines.find((m) => m.medicine_id === med.medicineId);
       if (medicine) {
         const currentStock = parseInt(medicine.stock_quantity);
-        const usage = med.days * (med.dosageType === "child" ? 0.5 : 1);
+        const usage = med.category === "child" ? 0.5 : 1;
         const newStock = currentStock - usage;
 
         await fetch("/api/medicine", {
@@ -222,10 +239,13 @@ const CheckPage = () => {
       diagnosis,
       medications,
       labTests,
+      // dosagevalue,
+      // dosageUnit,
+      // dosageType,
+      // dosagetiming,
     };
 
     console.log(prescriptionData);
-    setPatients([]);
     setIsPrescriptionOpen(false);
   };
 
@@ -233,22 +253,28 @@ const CheckPage = () => {
     const selectedMedicine = medicines.find(
       (med) => med.medicine_id.toString() === selectedSubtype
     );
+
     if (!selectedMedicine) return;
 
-    const dosageType =
+    const category =
       selectedPatient && selectedPatient.age < 12 ? "child" : "adult";
 
-    setMedications([
-      ...medications,
-      {
-        type: selectedMedicine.medicine_type,
-        subtype: selectedMedicine.medicine_name,
-        medicineId: selectedMedicine.medicine_id,
-        dosageType,
-        dosage: dosageType === "child" ? "1/2 tablet" : "1 tablet",
-        days: 0,
-      },
-    ]);
+    const newMedication: MedicationEntry = {
+      type: selectedMedicine.medicine_type,
+      subtype: selectedMedicine.medicine_name,
+      medicineId: selectedMedicine.medicine_id,
+      category: category,
+      dosageValue: "",
+      dosageUnit: selectedMedicine.dosageUnit || "",
+      dosageType: "",
+      dosagetiming: "",
+    };
+
+    setMedications((prevMedications) => {
+      const updatedMedications = [...prevMedications, newMedication];
+      console.log(updatedMedications);
+      return updatedMedications;
+    });
   };
 
   const displayRemaining = (medicineId: string) => {
@@ -296,6 +322,25 @@ const CheckPage = () => {
       discharge_date: "",
     });
     setIsInpatientopen(false);
+  };
+
+  const updateDosageTiming = (index: number, value: string) => {
+    setMedicines((prevMedicines) =>
+      prevMedicines.map((med, i) =>
+        i === index ? { ...med, dosagetiming: value } : med
+      )
+    );
+  };
+  const updateMedicineField = (
+    index: number,
+    field: keyof Medicine,
+    value: string
+  ) => {
+    setMedicines((prevMedicines) =>
+      prevMedicines.map((med, i) =>
+        i === index ? { ...med, [field]: value } : med
+      )
+    );
   };
 
   return (
@@ -470,6 +515,67 @@ const CheckPage = () => {
                         {med.type}
                       </p>
                     </div>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="number"
+                          // onChange={(e) => {
+                          //   const updated = [...medications];
+                          //   updated[index].dosageValue = e.target.value;
+                          //   setMedications(updated);
+                          // }}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "dosageValue",
+                              e.target.value
+                            )
+                          }
+                          className="w-20"
+                          value={med.dosageValue}
+                        />
+                        <p className="text-sm text-bold">
+                          <b>{med.dosageUnit}</b>
+                        </p>
+                        <Select
+                          value={med.dosagetiming}
+                          onValueChange={(value) =>
+                            handleMedicationChange(index, "dosagetiming", value)
+                          }
+                        >
+                          <SelectTrigger className="w-[160px]">
+                            <SelectValue placeholder="Dosage Timing" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bid">
+                              BID
+                              <p className="text-sm text-muted-foreground">
+                                (2 Times per Day)
+                              </p>
+                            </SelectItem>
+                            <SelectItem value="tds">
+                              TDS
+                              <p className="text-sm text-muted-foreground">
+                                (3 Times per Day)
+                              </p>
+                            </SelectItem>
+                            <SelectItem value="od">
+                              OD{" "}
+                              <p className="text-sm text-muted-foreground">
+                                (1 Time per Day)
+                              </p>
+                            </SelectItem>
+                            <SelectItem value="sos">
+                              SOS
+                              <p className="text-sm text-muted-foreground">
+                                (If needed)
+                              </p>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -482,26 +588,31 @@ const CheckPage = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Label>Tablets:</Label>
-                      <Input
-                        type="number"
-                        value={med.days}
-                        onChange={(e) => {
-                          const updated = [...medications];
-                          updated[index].days = parseInt(e.target.value);
-                          setMedications(updated);
-                        }}
-                        className="w-20"
-                      />
+                      {["CHOORANAM", "THAILAM"].includes(med.type) ? (
+                        <Select
+                          value={med.dosageType}
+                          onValueChange={(value) =>
+                            handleMedicationChange(index, "dosageType", value)
+                          }
+                        >
+                          <SelectTrigger className="w-[160px]">
+                            <SelectValue placeholder="Dosage Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="internal">Internal</SelectItem>
+                            <SelectItem value="external">External</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : null}
                     </div>
-                    <p className="text-sm">
-                      {med.dosage} ({med.dosageType})
+                    <p className="text-md">
+                      Age-category: <b>{med.category}</b>
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    {/* <p className="text-sm text-muted-foreground">
                       Stock: {displayRemaining(med.medicineId.toString())}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               ))}

@@ -198,7 +198,7 @@ const AddVisitPage: React.FC = () => {
             />
 
             <Button type="submit" className="w-full">
-              Register Visit
+              Register OutPatient
             </Button>
           </form>
         </Form>
