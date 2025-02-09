@@ -52,7 +52,7 @@ const menuGroups = [
       {
         title: "InPatient Registration",
         url: "/ip_registration",
-        icon: Bed,  // Changed from Activity to Bed
+        icon: Bed, // Changed from Activity to Bed
       },
       {
         title: "Outpatients Screening",
@@ -60,21 +60,20 @@ const menuGroups = [
         icon: Activity,
       },
     ],
-
   },
   {
     label: "Treatment",
     items: [
       {
-        title: "pharmacy",
+        title: "Dispancy",
+        url: "/dispancy",
+        icon: Syringe,
+      },
+      {
+        title: "Pharmacy",
         url: "/medications",
         icon: Pill,
       },
-      // {
-      //   title: "diagnosis",
-      //   url: "/checking",
-      //   icon: Syringe,
-      // },
     ],
   },
   {
