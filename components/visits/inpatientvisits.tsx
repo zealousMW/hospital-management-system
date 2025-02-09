@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import AddVisitPage from './addvisits';
 import { Hospital, Plus } from 'lucide-react';
@@ -74,11 +75,13 @@ const Visitstable = () => {
                   New Outpatient
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh]">
                 <DialogHeader>
                   <DialogTitle>Add New Visit</DialogTitle>
                 </DialogHeader>
-                <AddVisitPage />
+                <ScrollArea className="h-[80vh]">
+                  <AddVisitPage />
+                </ScrollArea>
               </DialogContent>
             </Dialog>
           </div>

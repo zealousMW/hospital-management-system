@@ -2,6 +2,7 @@ import AppSidebar from "@/components/sidebar/app-sidebar"
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import Visitstable from "@/components/visits/inpatientvisits";
+import Inpatientvisits from "@/components/visits/outpatientvisits";
 
 
 const Patients = () => {
@@ -16,7 +17,7 @@ const Patients = () => {
         <AppSidebar />
         <SidebarInset>
         <SidebarTrigger />
-            <Visitstable/>
+            <Inpatientvisits/>
         </SidebarInset>
       </SidebarProvider>
     );

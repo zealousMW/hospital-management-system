@@ -33,6 +33,9 @@ const formSchema = z.object({
   gender: z.enum(["M", "F", "O"]),
   place: z.string().min(2, "Place must be at least 2 characters"),
   outpatient_id: z.number().optional(),
+  department_type: z.string().min(1, "Department type is required"),
+  department: z.string().min(1, "Department is required"),
+  cause: z.string().min(2, "Cause of visit is required"),
 });
 
 type Patient = {
@@ -47,6 +50,7 @@ type Patient = {
 const AddVisitPage: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Patient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [departments, setDepartments] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,6 +62,9 @@ const AddVisitPage: React.FC = () => {
       age: "",
       gender: "M",
       place: "",
+      department_type: "",
+      department: "",
+      cause: "",
     },
   });
 
@@ -90,6 +97,17 @@ const AddVisitPage: React.FC = () => {
     });
 
     setShowSuggestions(false);
+  };
+
+  const fetchDepartments = async (type: string) => {
+    try {
+      const response = await fetch(`/api/departmentApi?department_type=${type}`);
+      const data = await response.json();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      setDepartments([]);
+    }
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -193,6 +211,78 @@ const AddVisitPage: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cause"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cause of Visit *</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="border rounded" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="department_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department Type *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      fetchDepartments(value);
+                      form.setValue('department', '');
+                    }} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="UG">UG</SelectItem>
+                      <SelectItem value="PG">PG</SelectItem>
+                      <SelectItem value="special">Special</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem 
+                          key={dept.department_id} 
+                          value={dept.department_id.toString()}
+                        >
+                          {dept.department_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
