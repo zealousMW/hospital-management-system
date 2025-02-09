@@ -237,7 +237,7 @@ export default function Screening() {
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isLoading}>
-              {isLoading ? "Updating..." : "Assign"}
+              {isLoading ? "Updating..." : "Assign Dept"}
             </Button>
           </DialogFooter>
         </DialogContent>

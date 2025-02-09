@@ -16,22 +16,24 @@ interface OutpatientVisit {
   gender: string;
   date_of_visit: string;
   department: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: "active" | "completed" | "cancelled";
 }
 
 const Visitstable = () => {
-  const [outpatientVisits, setOutpatientVisits] = useState<OutpatientVisit[]>([]);
+  const [outpatientVisits, setOutpatientVisits] = useState<OutpatientVisit[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchVisitsData = async () => {
     try {
-      const response = await fetch('/api/visits');
-      if (!response.ok) throw new Error('Failed to fetch visits');
+      const response = await fetch("/api/visits");
+      if (!response.ok) throw new Error("Failed to fetch visits");
       const data = await response.json();
       setOutpatientVisits(data);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
@@ -41,8 +43,8 @@ const Visitstable = () => {
     fetchVisitsData();
   }, []);
 
-  const filteredVisits = outpatientVisits.filter(visit =>
-    Object.values(visit).some(value => 
+  const filteredVisits = outpatientVisits.filter((visit) =>
+    Object.values(visit).some((value) =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -72,12 +74,12 @@ const Visitstable = () => {
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  New Outpatient
+                  New OutPatient
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-h-[90vh]">
                 <DialogHeader>
-                  <DialogTitle>Add New Visit</DialogTitle>
+                  <DialogTitle>Add OutPatient</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="h-[80vh]">
                   <AddVisitPage />
@@ -108,17 +110,24 @@ const Visitstable = () => {
                       <TableCell>{visit.department}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => console.log('View details:', visit.visit_id)}
+                            onClick={() =>
+                              console.log("View details:", visit.visit_id)
+                            }
                           >
                             View
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => console.log('Convert to inpatient:', visit.visit_id)}
+                            onClick={() =>
+                              console.log(
+                                "Convert to inpatient:",
+                                visit.visit_id
+                              )
+                            }
                           >
                             Convert
                           </Button>
