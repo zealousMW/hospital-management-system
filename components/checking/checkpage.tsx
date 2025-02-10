@@ -12,12 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -65,7 +60,7 @@ interface Medicine {
   medicine_name: string;
   medicine_type: string;
   stock_quantity: string;
-  dosage_unit: string;  // Single field for units
+  dosageUnit: string; // Single field for units
 }
 
 interface MedicationEntry {
@@ -187,11 +182,11 @@ const CheckPage = () => {
     setMedications([]);
     setLabTests([]);
     setDiagnosis("");
-    
+
     try {
       const response = await fetch(`/api/oldvisit?outpatient_id=${patient.id}`);
       const data = await response.json();
-      console.log('Visit history response:', data); // Add this debug log
+      //console.log('Visit history response:', data); // Add this debug log
       setVisitHistory(data);
     } catch (error) {
       console.error("Error fetching visit history:", error);
@@ -233,7 +228,7 @@ const CheckPage = () => {
 
   const handleSubmitPrescription = async () => {
     if (!selectedPatient) return;
-  
+
     try {
       // Update diagnosis first
       const diagnosisResponse = await fetch("/api/outpatientvisit", {
@@ -244,85 +239,88 @@ const CheckPage = () => {
           diagnosis: diagnosis,
         }),
       });
-  
+
       if (!diagnosisResponse.ok) {
-        throw new Error('Failed to update diagnosis');
+        throw new Error("Failed to update diagnosis");
       }
-  
+
       // Prepare prescription data
       const prescriptionData = {
-        medicine_ids: medications.map(med => med.medicineId),
-        dosage: medications.map(med => med.dosageValue),
-        dosage_timing: medications.map(med => med.dosagetiming),
-        dosage_type: medications.map(med => med.dosageType),
+        medicine_ids: medications.map((med) => med.medicineId),
+        dosage: medications.map((med) => med.dosageValue),
+        prescription_date: new Date(),
+        dosage_timing: medications.map((med) => med.dosagetiming),
+        dosage_type: medications.map((med) => med.dosageType),
         visit_id: selectedPatient.visit_id,
       };
-  
       // Submit prescription
       const prescriptionResponse = await fetch("/api/prescription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(prescriptionData),
       });
-  
+
       if (!prescriptionResponse.ok) {
         const error = await prescriptionResponse.json();
-        throw new Error(error.error || 'Failed to save prescription');
+        throw new Error(error.error || "Failed to save prescription");
       }
-  
+
       // Update medicine stock after successful prescription
-      await Promise.all(medications.map(async (med) => {
-        const medicine = medicines.find(m => m.medicine_id === med.medicineId);
-        if (medicine) {
-          const currentStock = parseInt(medicine.stock_quantity);
-          const usage = med.category === "child" ? 0.5 : 1;
-          const newStock = currentStock - usage;
-  
-          const stockResponse = await fetch("/api/medicine", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              medicine_id: med.medicineId,
-              stock_quantity: newStock,
-            }),
-          });
-  
-          if (!stockResponse.ok) {
-            throw new Error(`Failed to update stock for ${med.subtype}`);
-          }
-        }
-      }));
-  
+      // await Promise.all(
+      //   medications.map(async (med) => {
+      //     const medicine = medicines.find(
+      //       (m) => m.medicine_id === med.medicineId
+      //     );
+      //     if (medicine) {
+      //       const currentStock = parseInt(medicine.stock_quantity);
+      //       const usage = med.category === "child" ? 0.5 : 1;
+      //       const newStock = currentStock - usage;
+
+      //       const stockResponse = await fetch("/api/medicine", {
+      //         method: "PUT",
+      //         headers: { "Content-Type": "application/json" },
+      //         body: JSON.stringify({
+      //           medicine_id: med.medicineId,
+      //           stock_quantity: newStock,
+      //         }),
+      //       });
+
+      //       if (!stockResponse.ok) {
+      //         throw new Error(`Failed to update stock for ${med.subtype}`);
+      //       }
+      //     }
+      //   })
+      // );
+
       setIsPrescriptionOpen(false);
       // Optionally refresh the patient list or show success message
-  
     } catch (error) {
       console.error("Error in prescription submission:", error);
       // You might want to show an error message to the user
     }
   };
-  
 
   const handleAddMedication = () => {
     const selectedMedicine = medicines.find(
       (med) => med.medicine_id.toString() === selectedSubtype
     );
-  
+
     if (!selectedMedicine) return;
-  
-    const category = selectedPatient && selectedPatient.age < 12 ? "child" : "adult";
-  
+
+    const category =
+      selectedPatient && selectedPatient.age < 12 ? "child" : "adult";
+
     const newMedication: MedicationEntry = {
       type: selectedMedicine.medicine_type,
       subtype: selectedMedicine.medicine_name,
       medicineId: selectedMedicine.medicine_id,
       category,
       dosageValue: "",
-      dosageUnit: selectedMedicine.dosage_unit || "",
+      dosageUnit: selectedMedicine.dosageUnit || "",
       dosageType: "",
       dosagetiming: "",
     };
-  
+
     setMedications((prevMedications) => [...prevMedications, newMedication]);
   };
 
@@ -373,25 +371,6 @@ const CheckPage = () => {
     setIsInpatientopen(false);
   };
 
-  const updateDosageTiming = (index: number, value: string) => {
-    setMedicines((prevMedicines) =>
-      prevMedicines.map((med, i) =>
-        i === index ? { ...med, dosagetiming: value } : med
-      )
-    );
-  };
-  const updateMedicineField = (
-    index: number,
-    field: keyof Medicine,
-    value: string
-  ) => {
-    setMedicines((prevMedicines) =>
-      prevMedicines.map((med, i) =>
-        i === index ? { ...med, [field]: value } : med
-      )
-    );
-  };
-
   return (
     <div className="w-full">
       <Card>
@@ -433,7 +412,9 @@ const CheckPage = () => {
               ) : (
                 patients
                   .filter((patient) =>
-                    patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    patient.name
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase())
                   )
                   .map((patient) => (
                     <TableRow key={patient.id}>
@@ -463,10 +444,14 @@ const CheckPage = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleProceed(patient)}>
+                              <DropdownMenuItem
+                                onClick={() => handleProceed(patient)}
+                              >
                                 Referral OP
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleInpatients(patient)}>
+                              <DropdownMenuItem
+                                onClick={() => handleInpatients(patient)}
+                              >
                                 Convert Inpatient
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -490,30 +475,52 @@ const CheckPage = () => {
                 <div className="flex flex-col h-full">
                   {/* Patient Info - Fixed Height */}
                   <div className="shrink-0 p-4 border-b bg-background/50">
-                    <h3 className="text-lg font-semibold mb-4">Patient Information</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Patient Information
+                    </h3>
                     <div className="bg-card rounded-lg p-4">
                       <dl className="space-y-2">
                         <div>
-                          <dt className="text-sm text-muted-foreground">Visit ID</dt>
-                          <dd className="text-sm font-medium">{selectedPatient.visit_id}</dd>
+                          <dt className="text-sm text-muted-foreground">
+                            Visit ID
+                          </dt>
+                          <dd className="text-sm font-medium">
+                            {selectedPatient.visit_id}
+                          </dd>
                         </div>
                         <div>
-                          <dt className="text-sm text-muted-foreground">Name</dt>
-                          <dd className="text-sm font-medium">{selectedPatient.name}</dd>
+                          <dt className="text-sm text-muted-foreground">
+                            Name
+                          </dt>
+                          <dd className="text-sm font-medium">
+                            {selectedPatient.name}
+                          </dd>
                         </div>
                         <div className="flex justify-between">
                           <div>
-                            <dt className="text-sm text-muted-foreground">Age</dt>
-                            <dd className="text-sm font-medium">{selectedPatient.age}</dd>
+                            <dt className="text-sm text-muted-foreground">
+                              Age
+                            </dt>
+                            <dd className="text-sm font-medium">
+                              {selectedPatient.age}
+                            </dd>
                           </div>
                           <div>
-                            <dt className="text-sm text-muted-foreground">Gender</dt>
-                            <dd className="text-sm font-medium">{selectedPatient.gender}</dd>
+                            <dt className="text-sm text-muted-foreground">
+                              Gender
+                            </dt>
+                            <dd className="text-sm font-medium">
+                              {selectedPatient.gender}
+                            </dd>
                           </div>
                         </div>
                         <div>
-                          <dt className="text-sm text-muted-foreground">Cause</dt>
-                          <dd className="text-sm font-medium">{selectedPatient.cause}</dd>
+                          <dt className="text-sm text-muted-foreground">
+                            Cause
+                          </dt>
+                          <dd className="text-sm font-medium">
+                            {selectedPatient.cause}
+                          </dd>
                         </div>
                       </dl>
                     </div>
@@ -522,27 +529,38 @@ const CheckPage = () => {
                   {/* Visit History - Scrollable */}
                   <div className="flex-1 min-h-0">
                     <div className="p-4 h-full flex flex-col">
-                      <h3 className="text-lg font-semibold mb-4 shrink-0">Visit History</h3>
+                      <h3 className="text-lg font-semibold mb-4 shrink-0">
+                        Visit History
+                      </h3>
                       <div className="relative flex-1">
                         <ScrollArea className="h-[calc(100vh-400px)] w-full rounded-md border">
                           <div className="p-4 space-y-3">
                             {visitHistory && visitHistory.length > 0 ? (
                               visitHistory.map((visit, index) => (
-                                <div key={index} className="bg-card rounded-lg p-4 border">
+                                <div
+                                  key={index}
+                                  className="bg-card rounded-lg p-4 border"
+                                >
                                   <div className="flex justify-between items-start mb-3">
                                     <div>
                                       <p className="text-sm font-semibold">
-                                        {new Date(visit.visit_date).toLocaleDateString()}
+                                        {new Date(
+                                          visit.visit_date
+                                        ).toLocaleDateString()}
                                       </p>
                                       <p className="text-xs text-muted-foreground mt-1">
-                                        {visit.department?.department_name || 'No department'}
+                                        {visit.department?.department_name ||
+                                          "No department"}
                                       </p>
                                     </div>
                                   </div>
                                   <div className="mt-2">
-                                    <p className="text-sm font-medium">Diagnosis:</p>
+                                    <p className="text-sm font-medium">
+                                      Diagnosis:
+                                    </p>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {visit.diagnosis || 'No diagnosis recorded'}
+                                      {visit.diagnosis ||
+                                        "No diagnosis recorded"}
                                     </p>
                                   </div>
                                 </div>
@@ -589,40 +607,59 @@ const CheckPage = () => {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="medications" className="flex-1 overflow-hidden">
+                  <TabsContent
+                    value="medications"
+                    className="flex-1 overflow-hidden"
+                  >
                     <div className="space-y-4 h-full flex flex-col overflow-y-auto">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Select value={selectedMedicineType} onValueChange={setSelectedMedicineType}>
+                          <Select
+                            value={selectedMedicineType}
+                            onValueChange={setSelectedMedicineType}
+                          >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue placeholder="Type" />
                             </SelectTrigger>
                             <SelectContent>
                               {getMedicineTypes().map((type) => (
-                                <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                                <SelectItem key={type.id} value={type.name}>
+                                  {type.name}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
 
-                          <Select value={selectedSubtype} onValueChange={setSelectedSubtype}>
+                          <Select
+                            value={selectedSubtype}
+                            onValueChange={setSelectedSubtype}
+                          >
                             <SelectTrigger className="w-[180px]">
                               <SelectValue placeholder="Select Medicine" />
                             </SelectTrigger>
                             <SelectContent>
                               {medicines
-                                .filter((med) => med.medicine_type === selectedMedicineType)
+                                .filter(
+                                  (med) =>
+                                    med.medicine_type === selectedMedicineType
+                                )
                                 .map((medicine) => (
-                                  <SelectItem 
-                                    key={medicine.medicine_id} 
+                                  <SelectItem
+                                    key={medicine.medicine_id}
                                     value={medicine.medicine_id.toString()}
                                   >
-                                    {medicine.medicine_name} ({medicine.stock_quantity})
+                                    {medicine.medicine_name} (
+                                    {medicine.stock_quantity})
                                   </SelectItem>
                                 ))}
                             </SelectContent>
                           </Select>
 
-                          <Button variant="secondary" size="sm" onClick={handleAddMedication}>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleAddMedication}
+                          >
                             <Plus className="h-4 w-4 mr-2" />
                             Add
                           </Button>
@@ -632,16 +669,25 @@ const CheckPage = () => {
                       <ScrollArea className="flex-1 border rounded-lg">
                         <div className="p-4 space-y-4">
                           {medications.map((med, index) => (
-                            <div key={index} className="bg-card rounded-lg border p-4">
+                            <div
+                              key={index}
+                              className="bg-card rounded-lg border p-4"
+                            >
                               <div className="flex items-start justify-between mb-4">
                                 <div>
                                   <h4 className="font-medium">{med.subtype}</h4>
-                                  <p className="text-sm text-muted-foreground">{med.type}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {med.type}
+                                  </p>
                                 </div>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => setMedications(medications.filter((_, i) => i !== index))}
+                                  onClick={() =>
+                                    setMedications(
+                                      medications.filter((_, i) => i !== index)
+                                    )
+                                  }
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -655,7 +701,13 @@ const CheckPage = () => {
                                       type="number"
                                       className="w-20"
                                       value={med.dosageValue}
-                                      onChange={(e) => handleMedicationChange(index, "dosageValue", e.target.value)}
+                                      onChange={(e) =>
+                                        handleMedicationChange(
+                                          index,
+                                          "dosageValue",
+                                          e.target.value
+                                        )
+                                      }
                                     />
                                     <span className="text-sm font-medium whitespace-nowrap">
                                       {med.dosageUnit}
@@ -667,14 +719,24 @@ const CheckPage = () => {
                                   <Label className="text-sm">Type</Label>
                                   <Select
                                     value={med.dosageType}
-                                    onValueChange={(value) => handleMedicationChange(index, "dosageType", value)}
+                                    onValueChange={(value) =>
+                                      handleMedicationChange(
+                                        index,
+                                        "dosageType",
+                                        value
+                                      )
+                                    }
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="internal">Internal</SelectItem>
-                                      <SelectItem value="external">External</SelectItem>
+                                      <SelectItem value="internal">
+                                        Internal
+                                      </SelectItem>
+                                      <SelectItem value="external">
+                                        External
+                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
@@ -683,16 +745,30 @@ const CheckPage = () => {
                                   <Label className="text-sm">Timing</Label>
                                   <Select
                                     value={med.dosagetiming}
-                                    onValueChange={(value) => handleMedicationChange(index, "dosagetiming", value)}
+                                    onValueChange={(value) =>
+                                      handleMedicationChange(
+                                        index,
+                                        "dosagetiming",
+                                        value
+                                      )
+                                    }
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select timing" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="bid">BID (2 Times per Day)</SelectItem>
-                                      <SelectItem value="tds">TDS (3 Times per Day)</SelectItem>
-                                      <SelectItem value="od">OD (1 Time per Day)</SelectItem>
-                                      <SelectItem value="sos">SOS (If needed)</SelectItem>
+                                      <SelectItem value="bid">
+                                        BID (2 Times per Day)
+                                      </SelectItem>
+                                      <SelectItem value="tds">
+                                        TDS (3 Times per Day)
+                                      </SelectItem>
+                                      <SelectItem value="od">
+                                        OD (1 Time per Day)
+                                      </SelectItem>
+                                      <SelectItem value="sos">
+                                        SOS (If needed)
+                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
@@ -709,7 +785,12 @@ const CheckPage = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setLabTests([...labTests, { name: "", description: "" }])}
+                        onClick={() =>
+                          setLabTests([
+                            ...labTests,
+                            { name: "", description: "" },
+                          ])
+                        }
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Test
@@ -718,13 +799,20 @@ const CheckPage = () => {
                       <ScrollArea className="h-[400px] border rounded-lg p-4">
                         <div className="space-y-4">
                           {labTests.map((test, index) => (
-                            <div key={index} className="bg-card rounded-lg border p-4 space-y-4">
+                            <div
+                              key={index}
+                              className="bg-card rounded-lg border p-4 space-y-4"
+                            >
                               <div className="flex items-center justify-between">
                                 <Label className="text-sm">Test Details</Label>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => setLabTests(labTests.filter((_, i) => i !== index))}
+                                  onClick={() =>
+                                    setLabTests(
+                                      labTests.filter((_, i) => i !== index)
+                                    )
+                                  }
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -759,10 +847,15 @@ const CheckPage = () => {
               </div>
 
               <div className="border-t p-4 flex justify-end gap-4">
-                <Button variant="outline" onClick={() => setIsPrescriptionOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPrescriptionOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSubmitPrescription}>Save Treatment</Button>
+                <Button onClick={handleSubmitPrescription}>
+                  Save Treatment
+                </Button>
               </div>
             </div>
           </div>

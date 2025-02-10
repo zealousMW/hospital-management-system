@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET() {
@@ -22,44 +22,92 @@ export async function GET() {
   return NextResponse.json(formattedData);
 }
 
-export async function PUT(request: Request) {
-  try {
-    const supabase = await createClient();
-    const body = await request.json();
+export async function PUT(req: NextRequest, res: NextResponse) {
+  const supabase = await createClient();
+  const { action, dosage } = await req.json();
+  const { searchParams } = new URL(req.url);
+  const medicineId = searchParams.get("medicineId");
 
-    const { medicine_id, stock_quantity } = body;
+  if (!medicineId || !dosage || !action) {
+    return NextResponse.json(
+      { message: "Medicine ID and dosage are required" },
+      { status: 400 }
+    );
+  }
+  if (action === "reduceDosage") {
+    try {
+      // Fetch current stock
+      const { data: medicine, error: fetchError } = await supabase
+        .from("medicine")
+        .select("stock_quantity")
+        .eq("medicine_id", medicineId)
+        .single();
 
-    if (!medicine_id || stock_quantity === undefined) {
-      return NextResponse.json({
-        success: false,
-        error: "Medicine ID and stock quantity are required",
-      });
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!medicine) {
+        return NextResponse.json(
+          { message: "Medicine not found" },
+          { status: 404 }
+        );
+      }
+
+      const newStock =
+        medicine.stock_quantity > dosage
+          ? medicine.stock_quantity - dosage
+          : medicine.stock_quantity;
+
+      // Update stock
+      const { error: updateError } = await supabase
+        .from("medicine")
+        .update({ stock_quantity: newStock })
+        .eq("medicine_id", medicineId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      return NextResponse.json(
+        { message: "Stock updated successfully", newStock },
+        { status: 200 }
+      );
+    } catch (error: any) {
+      console.error("Error updating stock:", error);
+      return NextResponse.json(
+        { message: "Failed to update stock", error: error.message },
+        { status: 500 }
+      );
     }
+  }
 
-    const { data, error } = await supabase
-      .from("medicine")
-      .update({
-        stock_quantity: stock_quantity.toString(),
-      })
-      .eq("medicine_id", medicine_id)
-      .select("*")
-      .single();
+  if (action === "addDosage" && dosage >= 0) {
+    try {
+      const { error: updateError } = await supabase
+        .from("medicine")
+        .update({ stock_quantity: dosage })
+        .eq("medicine_id", medicineId);
 
-    if (error) {
-      return NextResponse.json({
-        success: false,
-        error: error.message,
-      });
+      if (updateError) {
+        throw updateError;
+      }
+
+      return NextResponse.json(
+        { message: "Stock updated successfully", dosage },
+        { status: 200 }
+      );
+    } catch (error: any) {
+      console.error("Error updating stock:", error);
+      return NextResponse.json(
+        { message: "Failed to update stock", error: error.message },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json({
-      success: true,
-      data: data,
-    });
-  } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: "Internal server error",
-    });
+  } else {
+    return NextResponse.json(
+      { message: "Action required or Dosage value error" },
+      { status: 400 }
+    );
   }
 }

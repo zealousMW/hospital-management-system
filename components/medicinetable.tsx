@@ -85,16 +85,19 @@ const MedicineTable = () => {
     if (selectedMedicine) {
       setUpdating(true);
       try {
-        const response = await fetch("/api/medicine", {
-          method: "PUT", // Changed from PATCH to PUT
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            medicine_id: selectedMedicine.medicine_id,
-            stock_quantity: parseInt(newStock), // Ensure it's a number
-          }),
-        });
+        const response = await fetch(
+          `/api/medicine/?medicineId=${selectedMedicine.medicine_id}`,
+          {
+            method: "PUT", // Changed from PATCH to PUT
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "addDosage",
+              dosage: parseInt(newStock), // Ensure it's a number
+            }),
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
