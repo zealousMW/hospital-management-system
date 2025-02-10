@@ -46,8 +46,9 @@ export default function PrivatePage() {
     total_visits_overall: number;
     total_male_visits: number;
     total_female_visits: number;
+    total_child_visits: number;
+    total_adult_visits: number;
   }
-  const total_child_visits = 0;
 
   const [stats, setStats] = useState<Stat[]>([]);
   const today = new Date().toISOString().split("T")[0];
@@ -213,7 +214,7 @@ export default function PrivatePage() {
                                 {stat.total_female_visits || 0}
                               </td>
                               <td className="border border-gray-300 px-4 py-2">
-                                {total_child_visits || 0}
+                                {stat.total_child_visits || 0}
                               </td>
                               <td className="border border-gray-300 px-4 py-2">
                                 {stat.total_visits_overall || 0}

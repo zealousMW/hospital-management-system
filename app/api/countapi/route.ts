@@ -12,10 +12,12 @@ export async function GET() {
         `
     department_type,
     department_name,
-    outpatientvisits: outpatientvisit(count),
-    todayvisits: outpatientvisit(count).filter(visit_date,eq.${today}),
-    male_visits: outpatientvisit(count).filter(outpatient_id, eq.outpatient.id).filter(outpatient.gender,eq.M),
-    female_visits: outpatientvisit(count).filter(outpatient_id, eq.outpatient.id).filter(outpatient.gender,eq.F)
+    outpatientvisit (
+      visit_date,
+      outpatient_id,
+      outpatient (gender,age)
+      
+    )
   `
       )
       .order("department_name");
@@ -27,15 +29,48 @@ export async function GET() {
         { status: 500 }
       );
     }
+    interface OutpatientVisit {
+      visit_date: string;
+      outpatient?: {
+        gender: string;
+        age: number;
+      };
+    }
 
-    const transformedData = data?.map((d: any) => ({
-      department_name: d.department_name,
-      department_type: d.department_type,
-      total_visits_today: d.todayvisits?.[0]?.count || 0,
-      total_visits_overall: d.outpatientvisits?.[0]?.count || 0,
-      total_male_visits: d.male_visits?.[0]?.count || 0,
-      total_female_visits: d.female_visits?.[0]?.count || 0, // Adjusted to handle femalevisits as an array
-    }));
+    const transformedData = data?.map((d: any) => {
+      const visits = d.outpatientvisit || [];
+
+      const totalVisitsToday = visits.filter(
+        (v: OutpatientVisit) => v.visit_date === today
+      ).length;
+      const totalOldvisits = visits.length - totalVisitsToday;
+      const totalMaleVisits = visits.filter(
+        (v: OutpatientVisit) => v.outpatient?.gender === "M"
+      ).length;
+      const totalFemaleVisits = visits.filter(
+        (v: OutpatientVisit) => v.outpatient?.gender === "F"
+      ).length;
+      const totalChildVisits = visits.filter(
+        (v: OutpatientVisit) =>
+          v.outpatient?.age !== undefined && v.outpatient.age < 12
+      ).length;
+      const totalAdultVisits = visits.filter(
+        (v: OutpatientVisit) =>
+          v.outpatient?.age !== undefined && v.outpatient.age >= 12
+      ).length;
+
+      return {
+        department_name: d.department_name,
+        department_type: d.department_type,
+        total_old_visits: totalOldvisits,
+        total_visits_today: totalVisitsToday,
+        total_visits_overall: visits.length,
+        total_male_visits: totalMaleVisits,
+        total_female_visits: totalFemaleVisits,
+        total_child_visits: totalChildVisits,
+        total_adult_visits: totalAdultVisits,
+      };
+    });
 
     return NextResponse.json(transformedData);
   } catch (error) {
