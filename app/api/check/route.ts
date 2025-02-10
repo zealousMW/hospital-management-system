@@ -11,6 +11,7 @@ export async function GET(req:NextRequest) {
         .from('outpatientvisit')
         .select(`
       visit_id,
+      outpatient_id,
       visit_date,
       cause_of_visit,
       outpatient:outpatient (
@@ -33,7 +34,9 @@ export async function GET(req:NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
     const formattedData = outpatientvisits?.map((visit: any) => ({
+
         visit_id: visit.visit_id,
+        outpatient_id: visit.outpatient_id || "No ID provided",
         name: visit.outpatient?.name || "No name provided",
         age: visit.outpatient?.age || "Age not specified",
         gender: visit.outpatient?.gender || "Gender not specified",
