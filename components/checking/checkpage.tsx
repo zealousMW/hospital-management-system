@@ -83,6 +83,17 @@ interface VisitHistory {
   } | null; // Make department optional since it might be null
 }
 
+interface Ward {
+  ward_id: number;
+  ward_name: string;
+}
+
+interface Bed {
+  bed_id: number;
+  bed_number: string;
+  is_occupied: boolean;
+}
+
 const CheckPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -116,6 +127,60 @@ const CheckPage = () => {
     bed_no: "",
     discharge_date: "",
   });
+  const departmentId = searchParams.get("department_id");
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [selectedWard, setSelectedWard] = useState<string>("");
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [selectedBed, setSelectedBed] = useState<number | null>(null);
+
+  const handleSelectBed = (bedId: number, e: React.FormEvent) => {
+    e.preventDefault();
+    setSelectedBed(bedId);
+  };
+
+  // Fetch Wards based on Department ID
+  useEffect(() => {
+    if (!departmentId) return;
+
+    const fetchWards = async () => {
+      const res = await fetch(`/api/wards?department_id=${departmentId}`);
+      const data: Ward[] = await res.json();
+      setWards(data);
+      if (data.length > 0) setSelectedWard(data[0].ward_id.toString());
+    };
+
+    fetchWards();
+  }, []);
+
+  // Fetch Beds based on Selected Ward
+  useEffect(() => {
+    if (!selectedWard) return;
+
+    const fetchBeds = async () => {
+      const res = await fetch(`/api/beds?ward_id=${selectedWard}`);
+      const data: Bed[] = await res.json();
+      setBeds(data);
+    };
+
+    fetchBeds();
+  }, [selectedWard]);
+
+  // Book Bed
+  const bookBed = async (bed_id: number) => {
+    const res = await fetch("/api/beds", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bed_id }),
+    });
+
+    if (res.ok) {
+      setBeds((prevBeds) =>
+        prevBeds.map((b) =>
+          b.bed_id === bed_id ? { ...b, is_occupied: true } : b
+        )
+      );
+    }
+  };
 
   useEffect(() => {
     const fetchMedicines = async () => {
@@ -232,7 +297,7 @@ const CheckPage = () => {
     try {
       // Update diagnosis first
       const diagnosisResponse = await fetch("/api/outpatientvisit", {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           visit_id: selectedPatient.visit_id,
@@ -346,20 +411,25 @@ const CheckPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           outpatient_id: data.outpatient_id,
-          aadhaar_no: data.aadhaar_no,
+          aadhaar_number: data.aadhaar_no,
           address: data.address,
-          ward_no: data.ward_no,
-          bed_no: data.bed_no,
+          ward_id: parseInt(selectedWard),
+          bed_id: selectedBed,
           discharge_date: data.discharge_date,
         }),
       })
         .then((response) => response.json())
         .then((result) => console.log(result))
         .catch((err) => console.log(err));
+      console.log(selectedBed, selectedWard);
     } catch (error) {
       console.log("Error occured in Create inpatient data:", error);
     }
     outpatientIdRef.current.value = "";
+    if (selectedBed) {
+      await bookBed(selectedBed);
+      setSelectedBed(null); // Reset after booking
+    }
     setPatients([]);
     setInpatientData({
       aadhaar_no: "",
@@ -901,7 +971,17 @@ const CheckPage = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="ward_no">Ward Number *</Label>
+                <Label htmlFor="discharge_date">Discharge Date *</Label>
+                <Input
+                  type="date"
+                  name="discharge_date"
+                  value={inpatientData.discharge_date}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                {/*<Label htmlFor="ward_no">Ward Number *</Label>
                 <Input
                   type="text"
                   name="ward_no"
@@ -918,17 +998,45 @@ const CheckPage = () => {
                   value={inpatientData.bed_no}
                   onChange={handleChange}
                   required
-                />
-              </div>
-              <div>
-                <Label htmlFor="discharge_date">Discharge Date *</Label>
-                <Input
-                  type="date"
-                  name="discharge_date"
-                  value={inpatientData.discharge_date}
-                  onChange={handleChange}
-                  required
-                />
+                />*/}
+                <label className="block font-semibold mb-2">Select Ward</label>
+                <Select value={selectedWard} onValueChange={setSelectedWard}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a Ward" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {wards.map((ward) => (
+                      <SelectItem
+                        key={ward.ward_id}
+                        value={ward.ward_id.toString()}
+                      >
+                        {ward.ward_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedWard && beds.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4 grid grid-cols-5 gap-4">
+                      {beds.map((bed) => (
+                        <Button
+                          key={bed.bed_id}
+                          variant={
+                            selectedBed === bed.bed_id
+                              ? "outline" // Highlight selected bed
+                              : !bed.is_occupied
+                                ? "default"
+                                : "destructive"
+                          }
+                          disabled={bed.is_occupied}
+                          onClick={(e) => handleSelectBed(bed.bed_id, e)}
+                        >
+                          Bed {bed.bed_number} ({bed.is_occupied ? "O" : "A"})
+                        </Button>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </form>
           </ScrollArea>

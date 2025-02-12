@@ -13,19 +13,19 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       outpatient_id,
-      aadhaar_no,
+      aadhaar_number,
       address,
-      ward_no,
-      bed_no,
+      ward_id,
+      bed_id,
       discharge_date,
     } = body;
 
     if (
       !outpatient_id ||
-      !aadhaar_no ||
+      !aadhaar_number ||
       !address ||
-      !ward_no ||
-      !bed_no ||
+      !ward_id ||
+      !bed_id ||
       !discharge_date
     ) {
       return NextResponse.json(
@@ -37,7 +37,14 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from(tableName)
       .insert([
-        { outpatient_id, aadhaar_no, address, ward_no, bed_no, discharge_date },
+        {
+          outpatient_id,
+          aadhaar_number,
+          address,
+          ward_id,
+          bed_id,
+          discharge_date,
+        },
       ])
       .select();
 

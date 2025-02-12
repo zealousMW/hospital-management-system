@@ -20,16 +20,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowRight } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { any } from "zod";
 
 interface OPdetails {
   visit_id: number;
@@ -57,43 +47,65 @@ export default function DispancyPage() {
   const [dispenseButton, setDispenseButton] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchPatients = async () => {
+    const fetchopdetails = async () => {
       setIsTableLoading(true);
       try {
-        const response = await fetch("api/prescription");
-        const data = await response.json();
+        // Step 1: Fetch outpatientvisit data
+        const response = await fetch("/api/outpatientvisit");
+        const outpatientData = await response.json();
 
-        const processedPrescriptions: Prescription[] = data.map(
-          (prescription: any) => {
-            const patient = prescription.outpatient;
-
-            return {
-              prescription_id: prescription.prescription_id,
-              visit_id: prescription.visit_id,
-              medicine_id: prescription.medicine_id,
-              dosage: prescription.dosage,
-              dosage_type: prescription.dosage_type,
-              dosage_timing: prescription.dosage_timing,
-              is_received: prescription.is_received || false,
-              patient_details: {
-                visit_id: prescription.visit_id,
-                name: patient.name,
-                age: patient.age,
-                gender: patient.gender,
-              },
-            };
-          }
+        // Step 2: Filter visits where medicine_dispensed is false
+        const pendingVisits = outpatientData.filter(
+          (visit: any) => !visit.medicine_dispensed
         );
 
-        setPrescriptions(processedPrescriptions);
+        // Step 3: Check which pending visits have prescriptions
+        const visitsWithPrescriptions = [];
+
+        for (const visit of pendingVisits) {
+          const prescriptionCheckResponse = await fetch(
+            `/api/prescription/?visitId=${visit.visit_id}`
+          );
+          const prescriptionData = await prescriptionCheckResponse.json();
+
+          if (prescriptionCheckResponse.ok && prescriptionData.length > 0) {
+            // Add to the list if prescription exists
+            const processedPrescriptions: Prescription[] = prescriptionData.map(
+              (prescription: any) => {
+                const patient = prescription.outpatient;
+
+                return {
+                  prescription_id: prescription.prescription_id,
+                  visit_id: prescription.visit_id,
+                  medicine_id: prescription.medicine_id,
+                  dosage: prescription.dosage,
+                  dosage_type: prescription.dosage_type,
+                  dosage_timing: prescription.dosage_timing,
+                  is_received: prescription.is_received,
+                  patient_details: {
+                    visit_id: prescription.visit_id,
+                    name: patient.name,
+                    age: patient.age,
+                    gender: patient.gender,
+                  },
+                };
+              }
+            );
+            setPrescriptions(processedPrescriptions);
+            // visitsWithPrescriptions.push(visit);
+          }
+        }
+
+        // Step 4: Set the state to display visits with pending medicines
+        //setPendingTreatments(visitsWithPrescriptions);
       } catch (error) {
-        console.error("Error fetching prescriptions:", error);
+        console.log("Error occurred fetching OP details:", error);
       } finally {
         setIsTableLoading(false);
       }
     };
 
-    fetchPatients();
+    fetchopdetails();
   }, []);
 
   const handleTreatmentClick = (visitId: number) => {
@@ -111,7 +123,7 @@ export default function DispancyPage() {
       )
     );
   };
-  const handlePrescriptionSubmit = async () => {
+  const handlePrescriptionSubmit = async (visit_id: number) => {
     const updatedPrescriptions = prescriptions.filter(
       (p) => p.is_received || p.is_received === false
     );
@@ -150,6 +162,29 @@ export default function DispancyPage() {
     } catch (error) {
       console.error("Error updating prescriptions:", error);
       alert("Failed to update prescriptions.");
+    }
+    try {
+      const response = await fetch("/api/outpatientvisit", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          visit_id: visit_id,
+          medicine_dispensed: true,
+        }),
+      });
+
+      if (response.ok) {
+        // Successfully updated, now remove pending treatments
+        setPrescriptions((prev: any) =>
+          prev.filter((visit: any) => visit.visit_id !== visit_id)
+        );
+      } else {
+        console.error("Failed to update medicine_dispensed status");
+      }
+    } catch (error) {
+      console.error("Error updating medicine_dispensed status:", error);
     }
   };
   return (
@@ -300,7 +335,9 @@ export default function DispancyPage() {
                             </TableBody>
                           </Table>
                           <Button
-                            onClick={handlePrescriptionSubmit}
+                            onClick={() =>
+                              handlePrescriptionSubmit(prescription.visit_id)
+                            }
                             className="mt-4 bg-blue-500 text-white rounded-xl"
                           >
                             Submit Updates

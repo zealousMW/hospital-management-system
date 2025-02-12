@@ -55,6 +55,7 @@ import { useSearchParams } from "next/navigation";
 import { Label } from "../ui/label";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 interface Patient {
   outpatient_id: number;
@@ -74,18 +75,125 @@ interface Inpatient {
   discharge_date: Date;
 }
 
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => void;
+  }
+}
+
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => void;
+    lastAutoTable?: { finalY: number }; // This makes TypeScript recognize lastAutoTable
+  }
+}
+
 function generatePdf(report: any) {
   var doc = new jsPDF();
-  doc.text("Inpatient ID: " + report.inpatient_id, 10, 10);
-  doc.text("Outpatient ID: " + report.outpatient_id, 10, 20);
-  doc.text("Name: " + report.name, 10, 30);
-  doc.text("Age: " + report.age, 10, 40);
-  doc.text("Address: " + report.address, 10, 50);
-  doc.text("Aadhaar No: " + report.aadhaar_no, 10, 60);
-  doc.text("Cause: " + report.cause, 10, 70);
-  doc.text("Lab Test: " + report.lab_test, 10, 80);
-  doc.text("Advise: " + report.advise, 10, 90);
-  doc.save("report.pdf");
+  // **Header Section**
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Government Siddha Medical College - Tirunelveli", 50, 20);
+  doc.setFontSize(12);
+  doc.text("Discharge Summary", 90, 30);
+  doc.line(20, 35, 190, 35); // **Underline**
+
+  // **Patient Details**
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Patient Information", 20, 45);
+  doc.setFont("helvetica", "normal");
+
+  const patientDetails = [
+    ["Patient Name", report.name],
+    ["Age / Sex", `${report.age} / ${report.gender}`],
+    ["Address", report.address],
+    ["IP No", report.ip_id],
+    ["OP No", report.op_id],
+    ["Date of Admission", report.admission_date],
+    ["Date of Discharge", report.discharge_date],
+    ["Ward / Room No", report.ward],
+    ["Patient Contact No", report.contact],
+  ];
+
+  doc.autoTable({
+    startY: 50,
+    head: [["Field", "Details"]],
+    body: patientDetails,
+    theme: "grid",
+    styles: { fontSize: 10 },
+  });
+
+  // **Diagnosis & Findings**
+  let yPosition = doc.lastAutoTable?.finalY
+    ? doc.lastAutoTable.finalY + 10
+    : 50;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Discharge Diagnosis", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  doc.text(report.diagnosis, 20, yPosition + 7);
+
+  yPosition += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text("History & Clinical Findings", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  doc.text(report.findings, 20, yPosition + 7);
+
+  // **Laboratory Investigations**
+  yPosition += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text("Laboratory Investigations", 20, yPosition);
+
+  const labResults = [
+    ["Total Count (TC)", `${report.tc} cells/cu.mm`],
+    [
+      "Differential Count (DC)",
+      `P: ${report.dc.p}%, L: ${report.dc.l}%, E: ${report.dc.e}%`,
+    ],
+  ];
+
+  doc.autoTable({
+    startY: yPosition + 5,
+    head: [["Test", "Result"]],
+    body: labResults,
+    theme: "grid",
+    styles: { fontSize: 10 },
+  });
+
+  // **Course in Hospital**
+  yPosition = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 10 : 50;
+  doc.setFont("helvetica", "bold");
+  doc.text("Course in Hospital", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  doc.text(report.course, 20, yPosition + 7);
+
+  // **Medical Advice**
+  yPosition += 15;
+  doc.setFont("helvetica", "bold");
+  doc.text("Medical Advice", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  report.medical_advice.forEach((advice: string, index: number) => {
+    doc.text(`• ${advice}`, 20, yPosition + (index + 1) * 7);
+  });
+
+  // **Review**
+  yPosition += report.medical_advice.length * 7 + 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Review", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  doc.text(report.review, 20, yPosition + 7);
+
+  // **Footer**
+  yPosition += 20;
+  doc.setFont("helvetica", "bold");
+  doc.text("Attending Physician:", 20, yPosition);
+  doc.setFont("helvetica", "normal");
+  doc.text("[Doctor’s Name]", 60, yPosition);
+  doc.text("[Hospital Name]", 60, yPosition + 7);
+
+  // **Save PDF**
+  doc.save(`Discharge_Report_${report.ip_id}.pdf`);
 }
 
 const PatientDetailsTable = () => {
@@ -139,15 +247,29 @@ const PatientDetailsTable = () => {
 
     //Mock data for generate Discharge Report
     setReport({
-      inpatient_id: 1,
-      outpatient_id: 5,
-      name: "Aravind",
-      age: 20,
-      address: "Tirunelveli",
-      aadhaar_no: "123456789",
-      cause: "Sample cause",
-      lab_test: "Sample test",
-      advise: "Sample advise",
+      name: "John Doe",
+      age: 45,
+      gender: "Male",
+      address: "123 Street, City",
+      ip_id: "IP12345",
+      op_id: "OP67890",
+      admission_date: "2025-02-01",
+      discharge_date: "2025-02-10",
+      ward: "General Ward - Room 5",
+      contact: "+1234567890",
+      diagnosis: "Bronchial Asthma",
+      findings:
+        "H/O Bronchial Asthma, Rhonchi (+), Bronchial Breathing (+), RR - 20/min",
+      tc: 8600,
+      dc: { p: 40, l: 37, e: 3 },
+      course:
+        "Patient took medication regularly. Symptoms reduced. Discharged in stable condition.",
+      medical_advice: [
+        "Drink hot water",
+        "Practice breathing exercises (Pranayama)",
+        "Avoid smoking",
+      ],
+      review: "Review after 7 days",
     });
   }, [selected]);
 

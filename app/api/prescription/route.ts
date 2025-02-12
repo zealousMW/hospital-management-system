@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
-
-  const { data: prescription, error } = await supabase.from("prescription")
-    .select(`
+  const { searchParams } = new URL(req.url);
+  const visitId = searchParams.get("visitId");
+  const { data: prescription, error } = await supabase
+    .from("prescription")
+    .select(
+      `
         *,
         outpatientvisit (
             outpatient (*)
         )
-    `);
+    `
+    )
+    .eq("visit_id", visitId);
 
   if (error) {
     console.error("Error fetching prescriptions:", error);
