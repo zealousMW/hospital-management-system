@@ -102,33 +102,28 @@ const menuGroups = [
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" variant="floating">
-      <SidebarContent className="h-screen w-64 bg-gradient-to-b from-green-300 via-green-500 to-green-700 text-white shadow-xl">
-        {menuGroups.map((group) => (
-          <SidebarGroup key={group.label} className="mt-6">
-            <SidebarGroupLabel className="text-lg font-semibold text-green-100 mb-2">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a
-                        href={item.url}
-                        className="flex items-center gap-3 p-2 hover:bg-green-800 rounded-lg transition-all cursor-pointer"
-                      >
-                        <item.icon className="h-6 w-6 text-white" />
-                        <span className="text-lg text-white">{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
-      </SidebarContent>
-    </Sidebar>
+       <SidebarContent>
+         {menuGroups.map((group) => (
+           <SidebarGroup key={group.label}>
+             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+             <SidebarGroupContent>
+               <SidebarMenu>
+                 {group.items.map((item) => (
+                   <SidebarMenuItem key={item.title}>
+                     <SidebarMenuButton asChild>
+                       <a href={item.url}>
+                         <item.icon className="w-5 h-5" />
+                         <span>{item.title}</span>
+                       </a>
+                     </SidebarMenuButton>
+                   </SidebarMenuItem>
+                 ))}
+               </SidebarMenu>
+             </SidebarGroupContent>
+           </SidebarGroup>
+         ))}
+       </SidebarContent>
+     </Sidebar>
   );
 }
 
