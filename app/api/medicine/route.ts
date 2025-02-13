@@ -22,7 +22,7 @@ export async function GET() {
   return NextResponse.json(formattedData);
 }
 
-export async function PUT(req: NextRequest, res: NextResponse) {
+export async function PUT(req: NextRequest) {
   const supabase = await createClient();
   const { action, dosage } = await req.json();
   const { searchParams } = new URL(req.url);

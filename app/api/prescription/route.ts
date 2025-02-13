@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(formattedData);
 }
 
-export async function PUT(req: NextRequest, res: NextResponse) {
+export async function PUT(req: NextRequest) {
   const supabase = await createClient();
   const { searchParams } = new URL(req.url);
   const prescriptionId = searchParams.get("prescriptionId");

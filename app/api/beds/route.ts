@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function PUT(req: Request, res: NextResponse) {
+export async function PUT(req: NextRequest) {
   const supabase = await createClient();
 
   try {
