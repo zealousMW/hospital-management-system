@@ -295,7 +295,6 @@ const CheckPage = () => {
     if (!selectedPatient) return;
 
     try {
-      // Update diagnosis first
       const diagnosisResponse = await fetch("/api/outpatientvisit", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -309,26 +308,52 @@ const CheckPage = () => {
         throw new Error("Failed to update diagnosis");
       }
 
-      // Prepare prescription data
-      const prescriptionData = {
-        medicine_ids: medications.map((med) => med.medicineId),
-        dosage: medications.map((med) => med.dosageValue),
-        prescription_date: new Date(),
-        dosage_timing: medications.map((med) => med.dosagetiming),
-        dosage_type: medications.map((med) => med.dosageType),
-        visit_id: selectedPatient.visit_id,
-      };
-      // Submit prescription
-      const prescriptionResponse = await fetch("/api/prescription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(prescriptionData),
-      });
+      for (const med of medications) {
+        const prescriptionData = {
+          medicine_id: med.medicineId,
+          dosage: med.dosageValue,
+          prescription_date: new Date(),
+          dosage_timing: med.dosagetiming,
+          dosage_type: med.dosageType,
+          visit_id: selectedPatient.visit_id,
+          inpatient_id: null,
+        };
 
-      if (!prescriptionResponse.ok) {
-        const error = await prescriptionResponse.json();
-        throw new Error(error.error || "Failed to save prescription");
+        const prescriptionResponse = await fetch("/api/prescription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(prescriptionData),
+        });
+
+        if (!prescriptionResponse.ok) {
+          throw new Error("Failed to save prescription");
+        }
       }
+
+
+
+      // Prepare prescription data
+      // const prescriptionData = {
+      //   medicine_ids: medications.map((med) => med.medicineId),
+      //   dosage: medications.map((med) => med.dosageValue),
+      //   prescription_date: new Date(),
+      //   dosage_timing: medications.map((med) => med.dosagetiming),
+      //   dosage_type: medications.map((med) => med.dosageType),
+      //   visit_id: selectedPatient.visit_id,
+      // };
+
+      // console.log(prescriptionData)
+      // Submit prescription
+      // const prescriptionResponse = await fetch("/api/prescription", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(prescriptionData),
+      // });
+
+      // if (!prescriptionResponse.ok) {
+      //   const error = await prescriptionResponse.json();
+      //   throw new Error(error.error || "Failed to save prescription");
+      // }
 
       // Update medicine stock after successful prescription
       // await Promise.all(

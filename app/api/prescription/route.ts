@@ -74,39 +74,61 @@ export async function PUT(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   try {
-    // Extract prescription data from request body
-    const { medicine_ids, dosage, dosage_timing, dosage_type, visit_id } =
+    // Extract single prescription data from request body
+    const { medicine_id, dosage, dosage_timing, prescription_date, dosage_type, visit_id, inpatient_id } =
       await req.json();
 
-    if (!visit_id || medicine_ids.length === 0) {
+    if (!medicine_id) {
       return NextResponse.json(
-        { message: "Visit ID and at least one medication are required." },
+        { message: "Visit ID and medication are required." },
         { status: 400 }
       );
     }
 
-    // Prepare data to insert multiple prescriptions
-    const prescriptionsToInsert = medicine_ids.map(
-      (medicine_id: number, index: number) => ({
-        medicine_id,
-        dosage: dosage[index],
-        dosage_timing: dosage_timing[index],
-        dosage_type: dosage_type[index],
-        visit_id,
-      })
-    );
+    let data;
 
-    // Insert data into prescription table
-    const { data, error } = await supabase
+    if (!inpatient_id) {
+      const result = await supabase
       .from("prescription")
-      .insert(prescriptionsToInsert);
+      .insert({
+        medicine_id,
+        dosage,
+        dosage_timing,
+        prescription_date,
+        visit_id,
+        dosage_type,
+      })
+      .select()
+      .single();
 
-    if (error) {
-      throw error;
+      data = result.data;
+
+      if (result.error) {
+        throw result.error;
+      }
+    } else {
+      const result = await supabase
+      .from("prescription")
+      .insert({
+        medicine_id,
+        dosage,
+        dosage_timing,
+        prescription_date,
+        inpatient_id,
+        dosage_type,
+      })
+      .select()
+      .single();
+
+      data = result.data;
+
+      if (result.error) {
+        throw result.error;
+      }
     }
 
     return NextResponse.json(
-      { message: "Prescriptions added successfully", data },
+      { message: "Prescription added successfully", data },
       { status: 201 }
     );
   } catch (error: any) {
