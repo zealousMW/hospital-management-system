@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +26,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useReactToPrint } from "react-to-print";
 
 interface OPdetails {
   visit_id: number;
@@ -39,12 +46,41 @@ interface Prescription {
   patient_details: OPdetails;
 }
 
+type Visit = {
+  visit_id: number;
+  outpatient_id: { name: string };
+  visit_date: string;
+};
+
+type PrescriptionHistory = {
+  prescription_id: number;
+  medicine_id: number;
+  dosage: string;
+  dosage_timing: string;
+  dosage_type: string;
+  is_received: boolean;
+};
+
+type HistoryItem = {
+  visit: Visit;
+  prescriptions: Prescription[];
+};
+
 export default function DispancyPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isTableLoading, setIsTableLoading] = useState<boolean>(true);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const [dispenseButton, setDispenseButton] = useState<boolean>(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [medicineMap, setMedicineMap] = useState<Record<number, string>>({});
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef, // Ensure correct reference
+    documentTitle: "Prescription_History",
+  });
 
   useEffect(() => {
     const fetchopdetails = async () => {
@@ -106,6 +142,23 @@ export default function DispancyPage() {
     };
 
     fetchopdetails();
+  }, []);
+
+  useEffect(() => {
+    // Fetch all medicine names to map medicine_id to names
+    const fetchMedicines = async () => {
+      const res = await fetch("/api/medicine");
+      const medicines = await res.json();
+      const medicineDict: Record<number, string> = {};
+      medicines.forEach(
+        (med: { medicine_id: number; medicine_name: string }) => {
+          medicineDict[med.medicine_id] = med.medicine_name;
+        }
+      );
+      setMedicineMap(medicineDict);
+    };
+
+    fetchMedicines();
   }, []);
 
   const handleTreatmentClick = (visitId: number) => {
@@ -187,12 +240,94 @@ export default function DispancyPage() {
       console.error("Error updating medicine_dispensed status:", error);
     }
   };
+
+  const handleHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dispensary-history");
+      const data: HistoryItem[] = await res.json();
+      setHistory(data);
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    }
+    setLoading(false);
+  };
   return (
     <div className="w-full">
       <Card>
-        <CardHeader>
-          <CardTitle>Prescription Records</CardTitle>
+        <CardHeader className="flex items-center justify-center">
+          <CardTitle className="text-left">Prescription Records</CardTitle>
+          <Button className="ml-auto" onClick={handleHistory}>
+            History
+          </Button>
         </CardHeader>
+        <CardContent>
+          {loading && <p>Loading...</p>}
+
+          {history.length > 0 && (
+            <div className="mt-4 space-y-4">
+              <Button variant="destructive" onClick={() => setHistory([])}>
+                Close
+              </Button>
+              <div ref={printRef} className="p-5 border rounded-lg bg-white">
+                <h2 className="text-xl font-bold text-center">
+                  Government Siddha Medical College - Tirunelveli
+                </h2>
+
+                {history.map(({ visit, prescriptions }) => (
+                  <Card
+                    key={visit.visit_id}
+                    className="p-4 mt-4 border rounded-lg"
+                  >
+                    <CardHeader>
+                      <CardTitle>Outpatient ID: {visit.visit_id}</CardTitle>
+                      <CardDescription>
+                        Outpatient Name: {visit.outpatient_id.name}
+                      </CardDescription>
+                      <p className="text-sm">Visit Date: {visit.visit_date}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Medicine</TableHead>
+                            <TableHead>Dosage</TableHead>
+                            <TableHead>Timing</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Received</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {prescriptions.map((prescription) => (
+                            <TableRow key={prescription.prescription_id}>
+                              <TableCell className="font-semibold">
+                                {medicineMap[prescription.medicine_id] ||
+                                  "Unknown Medicine"}
+                              </TableCell>
+                              <TableCell>{prescription.dosage}mg</TableCell>
+                              <TableCell>
+                                {prescription.dosage_timing}
+                              </TableCell>
+                              <TableCell className="italic">
+                                {prescription.dosage_type}
+                              </TableCell>
+                              <TableCell>
+                                {prescription.is_received ? "✅" : "❌"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Button variant="outline" onClick={() => handlePrint()}>
+                Print Report
+              </Button>
+            </div>
+          )}
+        </CardContent>
         <CardContent>
           <Input
             placeholder="Search by OP ID..."
@@ -213,13 +348,13 @@ export default function DispancyPage() {
             </TableHeader>
             <TableBody>
               {isTableLoading ? (
-                <TableRow>
+                <TableRow key="loading">
                   <TableCell colSpan={6} className="text-center">
                     Loading patients...
                   </TableCell>
                 </TableRow>
               ) : prescriptions.length === 0 ? (
-                <TableRow>
+                <TableRow key="no-patients">
                   <TableCell colSpan={6} className="text-center">
                     No patients found
                   </TableCell>
