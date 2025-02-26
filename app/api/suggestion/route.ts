@@ -4,22 +4,22 @@ import { createClient } from '@/utils/supabase/server';
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
 
-  let number = req.nextUrl.searchParams.get("number");
-  if (!number) {
-    return NextResponse.json({ message: "Please provide a number!" });
+  const searchTerm = req.nextUrl.searchParams.get("number") || '';
+  
+  if (!searchTerm) {
+    return NextResponse.json({ message: "Please provide a search term!" });
   }
-  let suggests= supabase
-  .from('outpatient')
- .select('*');
 
- if(suggests){
-  suggests = suggests.ilike('number', `${number}%`);
- }
+  const { data: outpatients, error } = await supabase
+    .from('outpatient')
+    .select('*')
+    .or(`number.ilike.${searchTerm}%,name.ilike.%${searchTerm}%`)
+    .limit(5);
 
- const { data: outpatients, error } = await suggests;
   if (error) {
     console.error('Error fetching visits:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  
   return NextResponse.json({ outpatients });
-} 
+}

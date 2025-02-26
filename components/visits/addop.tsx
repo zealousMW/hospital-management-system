@@ -27,7 +27,9 @@ import {
 const formSchema = z.object({
   visit_date: z.date(),
   notes: z.string().optional(),
-  mobile_number: z.string().min(10, "Mobile number must be at least 10 digits"),
+  mobile_number: z
+    .string()
+    .min(10, "Mobile number must be at least 10 digits"),
   name: z.string().min(2, "Name must be at least 2 characters"),
   age: z.string().min(1, "Age is required"),
   gender: z.enum(["M", "F", "O"]),
@@ -72,7 +74,7 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
     },
   });
 
-  const handleMobileNumberChange = async (value: string) => {
+  const handleSearchChange = async (value: string, field: string) => {
     if (value.length >= 1) {
       try {
         const response = await fetch(`/api/suggestion?number=${value}`);
@@ -109,7 +111,7 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
       const data = await response.json();
       setDepartments(data);
     } catch (error) {
-      console.error('Error fetching departments:', error);
+      console.error("Error fetching departments:", error);
       setDepartments([]);
     }
   };
@@ -143,8 +145,8 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
   // Add this effect to handle department changes when screening mode changes
   useEffect(() => {
     if (isScreening) {
-      form.setValue('department_type', 'special');
-      form.setValue('department', 'OP Screening');
+      form.setValue("department_type", "special");
+      form.setValue("department", "OP Screening");
     }
   }, [isScreening, form]);
 
@@ -176,27 +178,31 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                         type={fieldName === "age" ? "number" : "text"}
                         onChange={(e) => {
                           field.onChange(e);
-                          if (fieldName === "mobile_number") {
-                            handleMobileNumberChange(e.target.value);
+                          if (
+                            fieldName === "mobile_number" ||
+                            fieldName === "name"
+                          ) {
+                            handleSearchChange(e.target.value, fieldName);
                           }
                         }}
                         className="border rounded"
                       />
                     </FormControl>
                     <FormMessage />
-                    {fieldName === "mobile_number" && showSuggestions && (
-                      <div className="absolute z-10 w-full border bg-black text-white rounded shadow">
-                        {suggestions.map((patient) => (
-                          <div
-                            key={patient.outpatient_id}
-                            className="p-2 hover:opacity-75 cursor-pointer"
-                            onClick={() => handleSelectPatient(patient)}
-                          >
-                            {patient.name} - {patient.number}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {(fieldName === "mobile_number" || fieldName === "name") &&
+                      showSuggestions && (
+                        <div className="absolute z-10 w-full border bg-black text-white rounded shadow">
+                          {suggestions.map((patient) => (
+                            <div
+                              key={patient.outpatient_id}
+                              className="p-2 hover:opacity-75 cursor-pointer"
+                              onClick={() => handleSelectPatient(patient)}
+                            >
+                              {patient.name} - {patient.number}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                   </FormItem>
                 )}
               />
@@ -253,12 +259,12 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department Type *</FormLabel>
-                    <Select 
+                    <Select
                       onValueChange={(value) => {
                         field.onChange(value);
                         fetchDepartments(value);
-                        form.setValue('department', '');
-                      }} 
+                        form.setValue("department", "");
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -285,8 +291,8 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department *</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -296,8 +302,8 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                       </FormControl>
                       <SelectContent>
                         {departments.map((dept) => (
-                          <SelectItem 
-                            key={dept.department_id} 
+                          <SelectItem
+                            key={dept.department_id}
                             value={dept.department_id.toString()}
                           >
                             {dept.department_name}
