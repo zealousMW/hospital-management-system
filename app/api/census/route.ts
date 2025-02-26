@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     // Process data into daily counts
-    const dailyCounts = visitData.reduce((acc: any, visit) => {
+    const dailyCounts = visitData.reduce((acc: any, visit:any) => {
       const date = visit.visit_date;
       if (!acc[date]) {
         acc[date] = { male: 0, female: 0, other: 0, total: 0 };
