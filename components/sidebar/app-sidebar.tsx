@@ -31,7 +31,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/actions";
 
-
 const menuGroups = [
   {
     label: "Main",
@@ -44,13 +43,8 @@ const menuGroups = [
     ],
   },
   {
-    label: "Patient Care",
+    label: "Registration",
     items: [
-      {
-        title: "Patients",
-        url: "/patients",
-        icon: Users,
-      },
       {
         title: "Outpatients Registration",
         url: "/op_registration",
@@ -59,17 +53,28 @@ const menuGroups = [
       {
         title: "InPatient Registration",
         url: "/ip_registration",
-        icon: Bed, // Changed from Activity to Bed
+        icon: Bed,
       },
+      
+    ],
+  },
+  {
+    label: "Patient Care",
+    items: [
       {
-        title: "Follow Up",
-        url: "/follow_up",
-        icon: Calendar,
+        title: "Patients",
+        url: "/patients",
+        icon: Users,
       },
       {
         title: "Outpatients Screening",
         url: "/screening",
         icon: Activity,
+      },
+      {
+        title: "InPatient Follow Up",
+        url: "/follow_up",
+        icon: Calendar,
       },
     ],
   },

@@ -229,82 +229,87 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="cause"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cause of Visit *</FormLabel>
-                  <FormControl>
-                    <Input {...field} className="border rounded" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="department_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department Type *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      fetchDepartments(value);
-                      form.setValue('department', '');
-                    }} 
-                    defaultValue={field.value}
-                    disabled={isScreening}
-                  >
+            {/* Replace the cause FormField with this */}
+            {!isScreening && (
+              <FormField
+                control={form.control}
+                name="cause"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Symptoms *</FormLabel>
                     <FormControl>
-                      <SelectTrigger className={isScreening ? "bg-gray-100" : ""}>
-                        <SelectValue placeholder="Select department type" />
-                      </SelectTrigger>
+                      <Input {...field} className="border rounded" />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="UG">UG</SelectItem>
-                      <SelectItem value="PG">PG</SelectItem>
-                      <SelectItem value="special">Special</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-            <FormField
-              control={form.control}
-              name="department"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department *</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    disabled={isScreening}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={isScreening ? "bg-gray-100" : ""}>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {departments.map((dept) => (
-                        <SelectItem 
-                          key={dept.department_id} 
-                          value={dept.department_id.toString()}
-                        >
-                          {dept.department_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isScreening && (
+              <FormField
+                control={form.control}
+                name="department_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department Type *</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        fetchDepartments(value);
+                        form.setValue('department', '');
+                      }} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="UG">UG</SelectItem>
+                        <SelectItem value="PG">PG</SelectItem>
+                        <SelectItem value="special">Special</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {!isScreening && (
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department *</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem 
+                            key={dept.department_id} 
+                            value={dept.department_id.toString()}
+                          >
+                            {dept.department_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <Button type="submit" className="w-full">
               Register OutPatient

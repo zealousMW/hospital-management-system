@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
+
   const supabase = await createClient();
 
-  const { data: outpatientvisits, error } = await supabase
+  const query = supabase
     .from('outpatientvisit')
     .select(`
       visit_id,
@@ -19,8 +23,17 @@ export async function GET() {
         department_name
       )
     `)
-    .eq('visit_date', new Date().toISOString().split('T')[0])
     .order('visit_date', { ascending: false });
+
+  // Add date range filter if dates are provided
+  if (startDate && endDate) {
+    query.gte('visit_date', startDate).lte('visit_date', endDate);
+  } else {
+    // Default to today if no dates provided
+    query.eq('visit_date', new Date().toISOString().split('T')[0]);
+  }
+
+  const { data: outpatientvisits, error } = await query;
 
   if (error) {
     console.error('Error fetching visits:', error);

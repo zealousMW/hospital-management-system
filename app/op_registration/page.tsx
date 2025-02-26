@@ -5,7 +5,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import Visitstable from "@/components/visits/inpatientvisits";
+import Visitstable from "@/components/visits/outpatientvisit";
 
 const Patients = () => {
   return (

@@ -1,8 +1,8 @@
 import AppSidebar from "@/components/sidebar/app-sidebar"
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import Visitstable from "@/components/visits/inpatientvisits";
-import Inpatientvisits from "@/components/visits/outpatientvisits";
+import Visitstable from "@/components/visits/outpatientvisit";
+import Inpatientvisits from "@/components/visits/inpatientvisit";
 
 
 const Patients = () => {
