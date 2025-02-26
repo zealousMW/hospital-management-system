@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.from(tableName).select("*");
+    const { data, error } = await supabase.from(tableName).select("*").eq("medicine_dispensed", "FALSE").neq("diagnosis", "NULL");
 
     if (error) throw error;
 
