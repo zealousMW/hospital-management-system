@@ -103,6 +103,16 @@ const menuGroups = [
       },
     ],
   },
+  {
+    label: "Reports",
+    items: [
+      {
+        title: "Reports",
+        url: "/reports",
+        icon: Building2,
+      },
+    ],
+  },
 ];
 
 export function AppSidebar() {
