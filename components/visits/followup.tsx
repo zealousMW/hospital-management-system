@@ -5,7 +5,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import AddVisitPage from './addvisits';
+import AddVisitPage from './addop';
 import { Hospital, Plus, Eye, ArrowRight, Trash2, MoreHorizontal } from 'lucide-react';
 import AddInpatientForm from './addip';
 import { ScrollArea } from '@/components/ui/scroll-area';

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -47,7 +47,11 @@ type Patient = {
   age: number;
 };
 
-const AddVisitPage: React.FC = () => {
+interface AddVisitPageProps {
+  isScreening: boolean;
+}
+
+const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
   const [suggestions, setSuggestions] = useState<Patient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -136,12 +140,20 @@ const AddVisitPage: React.FC = () => {
     }
   };
 
+  // Add this effect to handle department changes when screening mode changes
+  useEffect(() => {
+    if (isScreening) {
+      form.setValue('department_type', 'special');
+      form.setValue('department', 'OP Screening');
+    }
+  }, [isScreening, form]);
+
   return (
     <Card className="w-full max-w-md mx-auto p-6">
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {["mobile_number", "name", "age", "place"].map((fieldName) => (
+            {["name", "mobile_number", "age", "place"].map((fieldName) => (
               <FormField
                 key={fieldName}
                 control={form.control}
@@ -157,6 +169,8 @@ const AddVisitPage: React.FC = () => {
                         value={
                           field.value instanceof Date
                             ? field.value.toISOString()
+                            : typeof field.value === "boolean"
+                            ? (field.value as string).toString()
                             : field.value
                         }
                         type={fieldName === "age" ? "number" : "text"}
@@ -242,9 +256,10 @@ const AddVisitPage: React.FC = () => {
                       form.setValue('department', '');
                     }} 
                     defaultValue={field.value}
+                    disabled={isScreening}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={isScreening ? "bg-gray-100" : ""}>
                         <SelectValue placeholder="Select department type" />
                       </SelectTrigger>
                     </FormControl>
@@ -265,9 +280,13 @@ const AddVisitPage: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Department *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={isScreening}
+                  >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={isScreening ? "bg-gray-100" : ""}>
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                     </FormControl>
