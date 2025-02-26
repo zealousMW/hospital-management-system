@@ -36,9 +36,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, ArrowRight, Plus, Trash2, MoreHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-
-import { useForm } from "react-hook-form";
-import { set } from "date-fns";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Patient {
@@ -132,6 +129,8 @@ const CheckPage = () => {
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [beds, setBeds] = useState<Bed[]>([]);
   const [selectedBed, setSelectedBed] = useState<number | null>(null);
+  const [complain, setComplain] = useState("");
+  const [duration, setDuration] = useState("");
 
   const handleSelectBed = (bedId: number, e: React.FormEvent) => {
     e.preventDefault();
@@ -617,6 +616,14 @@ const CheckPage = () => {
                             {selectedPatient.cause}
                           </dd>
                         </div>
+                        <div>
+                          <dt className="text-sm text-muted-foreground">
+                            Category
+                          </dt>
+                          <dd className="text-sm font-medium">
+                            {selectedPatient.age < 12 ? "Child" : "Adult"}
+                          </dd>
+                        </div>
                       </dl>
                     </div>
                   </div>
@@ -625,7 +632,7 @@ const CheckPage = () => {
                   <div className="flex-1 min-h-0">
                     <div className="p-4 h-full flex flex-col">
                       <h3 className="text-lg font-semibold mb-4 shrink-0">
-                        Visit History
+                        History of Illness
                       </h3>
                       <div className="relative flex-1">
                         <ScrollArea className="h-[calc(100vh-400px)] w-full rounded-md border">
@@ -684,14 +691,32 @@ const CheckPage = () => {
                 <Tabs defaultValue="diagnosis" className="h-full flex flex-col">
                   <TabsList className="mb-4">
                     <TabsTrigger value="diagnosis">Diagnosis</TabsTrigger>
-                    <TabsTrigger value="medications">Medications</TabsTrigger>
+                    <TabsTrigger value="Prescription">Prescription</TabsTrigger>
                     <TabsTrigger value="lab">Lab Tests</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="diagnosis" className="flex-1">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Current Diagnosis</Label>
+                        <Label>Complain</Label>
+                        <Textarea
+                          value={complain}
+                          onChange={(e) => setComplain(e.target.value)}
+                          placeholder="Enter complain details"
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Duration</Label>
+                        <Textarea
+                          value={duration}
+                          onChange={(e) => setDuration(e.target.value)}
+                          placeholder="Enter duration details"
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Provisional Diagnosis</Label>
                         <Textarea
                           value={diagnosis}
                           onChange={(e) => setDiagnosis(e.target.value)}
@@ -703,7 +728,7 @@ const CheckPage = () => {
                   </TabsContent>
 
                   <TabsContent
-                    value="medications"
+                    value="Prescription"
                     className="flex-1 overflow-hidden"
                   >
                     <div className="space-y-4 h-full flex flex-col overflow-y-auto">

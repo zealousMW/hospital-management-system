@@ -171,7 +171,7 @@ export default function Screening() {
                 <TableCell>
                   <Button onClick={() => handleAssign(patient)}>
                     <ClipboardList className="h-4 w-4 mr-2" />
-                    Assign
+                    Screening
                   </Button>
                 </TableCell>
               </TableRow>
@@ -189,9 +189,17 @@ export default function Screening() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign Department and Cause</DialogTitle>
+            <DialogTitle>Assign Department and Symptoms</DialogTitle>
           </DialogHeader>
           <div>
+          <div>
+              <Label>Symptoms</Label>
+              <Textarea
+                value={cause}
+                onChange={(e) => setCause(e.target.value)}
+                placeholder="Enter the cause of visit"
+              />
+            </div>
             <div>
               <Label>Department Type</Label>
               <Select value={departmentType} onValueChange={setDepartmentType}>
@@ -223,14 +231,7 @@ export default function Screening() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Cause of Visit</Label>
-              <Textarea
-                value={cause}
-                onChange={(e) => setCause(e.target.value)}
-                placeholder="Enter the cause of visit"
-              />
-            </div>
+           
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
