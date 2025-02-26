@@ -2,21 +2,28 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   SidebarProvider,
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { Calendar } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 export default function ReportsPage() {
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [fromDate, setFromDate] = useState<Date>();
+  const [toDate, setToDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
 
   const generateCensusPDF = async () => {
@@ -24,13 +31,20 @@ export default function ReportsPage() {
       const response = await fetch("/api/census", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromDate, toDate }),
+        body: JSON.stringify({ 
+          fromDate: fromDate?.toISOString().split('T')[0], 
+          toDate: toDate?.toISOString().split('T')[0] 
+        }),
       });
 
       const data = await response.json();
 
       // Create PDF
       const doc = new jsPDF();
+
+      // Format dates for PDF header and filename
+      const formattedFromDate = format(fromDate!, 'dd-MM-yyyy');
+      const formattedToDate = format(toDate!, 'dd-MM-yyyy');
 
       // Header
       doc.setFontSize(16);
@@ -42,7 +56,7 @@ export default function ReportsPage() {
       );
       doc.setFontSize(14);
       doc.text("Weekly Census Report", 105, 30, { align: "center" });
-      doc.text(`Period: ${fromDate} to ${toDate}`, 105, 40, { align: "center" });
+      doc.text(`Period: ${formattedFromDate} to ${formattedToDate}`, 105, 40, { align: "center" });
 
       // Create table data
       const tableData = Object.entries(data).map(([date, counts]: [string, any]) => [
@@ -80,8 +94,8 @@ export default function ReportsPage() {
         },
       });
 
-      // Save PDF
-      doc.save(`Census_Report_${fromDate}_to_${toDate}.pdf`);
+      // Save PDF with formatted date in filename
+      doc.save(`Census_Report_${formattedFromDate}_to_${formattedToDate}.pdf`);
     } catch (error) {
       console.error("Error generating census PDF:", error);
       alert("Error generating census report");
@@ -98,11 +112,7 @@ export default function ReportsPage() {
 
   return (
     <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "19rem",
-        } as React.CSSProperties
-      }
+      style={{ "--sidebar-width": "19rem" } as React.CSSProperties}
     >
       <AppSidebar />
       <SidebarInset>
@@ -115,31 +125,55 @@ export default function ReportsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fromDate">From Date</Label>
-                  <div className="relative">
-                    <Input
-                      id="fromDate"
-                      type="date"
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      className="pl-10"
-                    />
-                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
-                  </div>
+                  <Label>From Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !fromDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {fromDate ? format(fromDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={fromDate}
+                        onSelect={setFromDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="toDate">To Date</Label>
-                  <div className="relative">
-                    <Input
-                      id="toDate"
-                      type="date"
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      className="pl-10"
-                    />
-                    <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
-                  </div>
+                  <Label>To Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !toDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {toDate ? format(toDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={toDate}
+                        onSelect={setToDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="flex items-end">
