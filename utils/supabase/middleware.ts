@@ -1,11 +1,19 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+// Define protected routes
+const protectedPaths = [
+  '/patients',
+  '/op_registration',
+  '/protected',
+  '/dashboard',
+  '/appointments',
+  '/profile',
+  '/medical-records'
+];
+
 export const updateSession = async (request: NextRequest) => {
-  // This `try/catch` block is only here for the interactive tutorial.
-  // Feel free to remove once you have Supabase connected.
   try {
-    // Create an unmodified response
     let response = NextResponse.next({
       request: {
         headers: request.headers,
@@ -17,42 +25,50 @@ export const updateSession = async (request: NextRequest) => {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          getAll() {
-            return request.cookies.getAll();
+          get(name: string) {
+            return request.cookies.get(name)?.value;
           },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
-            );
-            response = NextResponse.next({
-              request,
+          set(name: string, value: string, options: CookieOptions) {
+            response.cookies.set({
+              name,
+              value,
+              ...options,
             });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
-            );
+          },
+          remove(name: string, options: CookieOptions) {
+            response.cookies.delete({
+              name,
+              ...options,
+            });
           },
         },
-      },
+      }
     );
 
-    // This will refresh session if expired - required for Server Components
-    // https://supabase.com/docs/guides/auth/server-side/nextjs
-    const user = await supabase.auth.getUser();
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-    // protected routes
-    if (request.nextUrl.pathname.startsWith("/protected") && user.error) {
-      return NextResponse.redirect(new URL("/", request.url));
+    // Check if the current path is protected
+    const isProtectedPath = protectedPaths.some(path => 
+      request.nextUrl.pathname.startsWith(path)
+    );
+
+    // Handle protected routes
+    if (isProtectedPath) {
+      if (!session) {
+        const redirectUrl = new URL('/', request.url);
+        redirectUrl.searchParams.set('returnUrl', request.nextUrl.pathname);
+        return NextResponse.redirect(redirectUrl);
+      }
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
-      return NextResponse.redirect(new URL("/protected", request.url));
+    // Handle auth routes when already logged in
+    if (['/', '/'].includes(request.nextUrl.pathname) && session) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     return response;
+
   } catch (e) {
-    // If you are here, a Supabase client could not be created!
-    // This is likely because you have not set up environment variables.
-    // Check out http://localhost:3000 for Next Steps.
     return NextResponse.next({
       request: {
         headers: request.headers,

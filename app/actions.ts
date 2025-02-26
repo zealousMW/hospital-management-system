@@ -7,36 +7,57 @@ import { ToastAction } from "@/components/ui/toast"
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export const signInAction = async (values: { name: string; password: string }) => {
-  const email = values.name;
-  const password = values.password;
-  const supabase = await createClient(); // Ensure createClient is properly configured
-
+  const supabase = await createClient();
+  
   try {
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: values.name,
+      password: values.password,
     });
 
     if (error) {
-      console.error("Error signing in:", error.message);
-      return { success: false, error: error.message };
+      return { error: error.message };
     }
 
-    console.log("Signed in successfully");
-    return { success: true };
+    // Successful login - redirect to protected route
+    redirect("/dashboard");
+    
   } catch (err) {
-    console.error("Unexpected error:", err);
-    return { success: false, error: "Unexpected error occurred. Please try again later." };
+    return { error: "An unexpected error occurred" };
   }
 };
-
-
 
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   return redirect("/");
 };
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, "", options);
+        },
+      },
+    }
+  );
+
+  await supabase.auth.signOut();
+  redirect('/');
+}

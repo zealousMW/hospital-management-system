@@ -1,29 +1,29 @@
 
 
-// import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
-// import { createClient } from '@/utils/supabase/server'
-// import { Button } from '@/components/ui/button'
-// import { signOutAction } from '../actions'
+import { createClient } from '@/utils/supabase/server'
+import { Button } from '@/components/ui/button'
+import { signOutAction } from '../actions'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 
 export default async function PrivatePage() {
-  // const supabase = await createClient()
+  const supabase = await createClient()
 
-  // const { data, error } = await supabase.auth.getUser()
-  // if (error || !data?.user) {
-  //   redirect('/login')
-  // }
-  // const handleLogout = async () => {
-  //   const { error } = await supabase.auth.signOut()
-  //   if (error) {
-  //     console.error("Error logging out:", error.message)
-  //     return
-  //   }
-  //   // Redirect to login after successful logout
-  //   redirect('/login')
-  // }
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data?.user) {
+    redirect('/login')
+  }
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error("Error logging out:", error.message)
+      return
+    }
+    // Redirect to login after successful logout
+    redirect('/login')
+  }
 
   return (
     <SidebarProvider

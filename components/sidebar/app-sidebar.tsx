@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Users,
   Building2,
@@ -20,11 +22,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Avatar from ShadCN UI
 import { Button } from "@/components/ui/button"; // Button from ShadCN UI
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { logoutAction } from "@/app/actions";
+
 
 const menuGroups = [
   {
@@ -100,6 +106,17 @@ const menuGroups = [
 ];
 
 export function AppSidebar() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logoutAction();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <Sidebar collapsible="icon" variant="floating">
        <SidebarContent>
@@ -123,6 +140,15 @@ export function AppSidebar() {
            </SidebarGroup>
          ))}
        </SidebarContent>
+       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout}>
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+       </SidebarFooter>
      </Sidebar>
   );
 }

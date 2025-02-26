@@ -17,7 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { signInAction } from "@/app/actions";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -39,24 +38,27 @@ const Patient = () => {
   const { toast } = useToast();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    //   try {
-    //     const error = await signInAction(values);
-    //     if(error) {
-    //       toast({
-    //         variant: "destructive",
-    //         className: "bg-red-500",
-    //         description: "Invalid username or password",
-    //         action: <ToastAction altText="Try again">Try again</ToastAction>,
-    //       });
-    //     }
-    //   } catch (err) {
-    //     toast({
-    //       variant: "destructive",
-    //       className: "bg-red-500",
-    //       description: "An error occurred. Please try again.",
-    //     });
-    //   }
+    try {
+      const result = await signInAction(values);
+
+      if (result?.error) {
+        toast({
+          variant: "destructive",
+          className: "bg-red-500",
+          description: result.error,
+          action: <ToastAction altText="Try again">Try again</ToastAction>,
+        });
+      }
+      // Successful login will trigger redirect in the action
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        className: "bg-red-500",
+        description: "An error occurred. Please try again.",
+      });
+    }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -127,10 +129,6 @@ const Patient = () => {
           <Button
             type="submit"
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              redirect("/dashboard");
-            }}
           >
             Sign In
           </Button>
