@@ -24,7 +24,11 @@ import { Hospital, Plus, CalendarIcon, Filter } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format, isToday, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -38,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import { CalendarRange, Users, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 
 interface OutpatientVisit {
   visit_id: number;
@@ -50,36 +55,38 @@ interface OutpatientVisit {
 }
 
 const Visitstable = () => {
-  const [outpatientVisits, setOutpatientVisits] = useState<OutpatientVisit[]>([]);
+  const [outpatientVisits, setOutpatientVisits] = useState<OutpatientVisit[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isScreening, setIsScreening] = useState(() => {
     // Initialize from localStorage if available
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('isScreening');
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("isScreening");
       return saved ? JSON.parse(saved) : false;
     }
     return false;
   });
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   // Save to localStorage when isScreening changes
   useEffect(() => {
-    localStorage.setItem('isScreening', JSON.stringify(isScreening));
+    localStorage.setItem("isScreening", JSON.stringify(isScreening));
   }, [isScreening]);
 
   const fetchVisitsData = async () => {
     try {
-      const startDateStr = startDate?.toISOString().split('T')[0];
-      const endDateStr = endDate?.toISOString().split('T')[0];
-      
+      const startDateStr = startDate?.toISOString().split("T")[0];
+      const endDateStr = endDate?.toISOString().split("T")[0];
+
       const url = new URL("/api/visits", window.location.origin);
       if (startDateStr && endDateStr) {
-        url.searchParams.append('startDate', startDateStr);
-        url.searchParams.append('endDate', endDateStr);
+        url.searchParams.append("startDate", startDateStr);
+        url.searchParams.append("endDate", endDateStr);
       }
-      
+
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch visits");
       const data = await response.json();
@@ -142,53 +149,50 @@ const Visitstable = () => {
                 className="max-w-sm"
               />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-w-[120px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[300px] p-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Date Range</Label>
-                    <div className="grid gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : "Start date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar mode="single" selected={startDate} onSelect={setStartDate} />
-                        </PopoverContent>
-                      </Popover>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP") : "End date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar mode="single" selected={endDate} onSelect={setEndDate} />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label>Screening Mode</Label>
-                    <div className="flex items-center space-x-2">
-                      <Switch checked={isScreening} onCheckedChange={setIsScreening} />
-                      <Label>Enable Screening</Label>
-                    </div>
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => {
+                      console.log("Start Date Selected:", date);
+                      if (date) setStartDate(date);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "End date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => {
+                      console.log("End Date Selected:", date);
+                      if (date) setEndDate(date);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch checked={isScreening} onCheckedChange={setIsScreening} />
+              <Label>Enable Screening</Label>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -208,15 +212,23 @@ const Visitstable = () => {
                 {filteredVisits.length > 0 ? (
                   filteredVisits.map((visit) => (
                     <TableRow key={visit.visit_id}>
-                      <TableCell className="font-medium">#{visit.visit_id}</TableCell>
+                      <TableCell className="font-medium">
+                        #{visit.visit_id}
+                      </TableCell>
                       <TableCell>{visit.name}</TableCell>
                       <TableCell>{visit.age}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{visit.department}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={isToday(parseISO(visit.date_of_visit)) ? "default" : "secondary"}>
-                          {format(parseISO(visit.date_of_visit), 'dd MMM yyyy')}
+                        <Badge
+                          variant={
+                            isToday(parseISO(visit.date_of_visit))
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {format(parseISO(visit.date_of_visit), "dd MMM yyyy")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -228,7 +240,10 @@ const Visitstable = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-6 text-muted-foreground"
+                    >
                       No visits found
                     </TableCell>
                   </TableRow>

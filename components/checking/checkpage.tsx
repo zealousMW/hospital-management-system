@@ -300,11 +300,17 @@ const CheckPage = () => {
         body: JSON.stringify({
           visit_id: selectedPatient.visit_id,
           diagnosis: diagnosis,
+          complain: complain,
+          duration: duration,
         }),
       });
 
       if (!diagnosisResponse.ok) {
         throw new Error("Failed to update diagnosis");
+      } else {
+        setComplain("");
+        setDiagnosis("");
+        setDuration("");
       }
 
       for (const med of medications) {
@@ -328,8 +334,6 @@ const CheckPage = () => {
           throw new Error("Failed to save prescription");
         }
       }
-
-
 
       // Prepare prescription data
       // const prescriptionData = {
