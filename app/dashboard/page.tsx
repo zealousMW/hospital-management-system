@@ -1,4 +1,6 @@
 "use client";
+
+import { getIndianDate } from "@/lib/utils";
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -52,7 +54,7 @@ export default function PrivatePage() {
   }
 
   const [stats, setStats] = useState<Stat[]>([]);
-  const today = new Date().toISOString().split("T")[0];
+  const today = getIndianDate(); // Replace existing date with Indian format
   const [selectedType, setSelectedType] = useState("UG");
 
   const filteredStats = stats.filter(
@@ -80,155 +82,143 @@ export default function PrivatePage() {
       title: "Inpatients",
       value: 124,
       icon: BedDouble,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
     },
     {
       title: "Outpatients",
       value: 305,
       icon: UserPlus,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
     },
     {
       title: "Available Beds",
       value: 45,
       icon: BedDouble,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
     },
     {
       title: "Today's Visits",
       value: 89,
       icon: Users,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
     },
   ];
 
   return (
     <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "19rem",
-        } as React.CSSProperties
-      }
+      style={{ "--sidebar-width": "19rem" } as React.CSSProperties}
+      className="bg-gray-50"
     >
       <AppSidebar />
-      <SidebarInset>
-        <SidebarTrigger className="-ml-1" />
+      <SidebarInset className="p-6">
+        <SidebarTrigger className="absolute top-4 left-4" />
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Hospital Dashboard</h1>
+            <TabsList className="bg-white shadow-sm">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Notifications
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {patientStats.map((stat) => (
-                <Card key={stat.title}>
+                <Card key={stat.title} className="border-none shadow-md hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
+                    <CardTitle className="text-sm font-medium text-gray-600">
                       {stat.title}
                     </CardTitle>
-                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    <div className={`${stat.bgColor} p-2 rounded-lg`}>
+                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-semibold">{stat.value}</div>
+                    <div className={`text-3xl font-bold ${stat.color}`}>
+                      {stat.value.toLocaleString()}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <div className="p-8 bg-gray-50">
-              <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">
-                Department-wise Patients Count : {today}
-              </h1>
-              <div className="flex items-center justify-center bg-white dark:bg-gray-900 p-2 m-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Department-wise Patients Count: {today} {/* This will now show Indian date */}
+              </h2>
+              
+              <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <RadioGroup
                   defaultValue={selectedType}
                   onValueChange={setSelectedType}
-                  className="flex justify-between gap-8"
+                  className="flex flex-wrap gap-4"
                 >
                   {options.map((option) => (
                     <div
                       key={option.value}
-                      onClick={() => setSelectedType(option.value)}
                       className={cn(
-                        "cursor-pointer text-lg font-medium px-4 py-2 ms-5 rounded-lg transition-all",
+                        "cursor-pointer rounded-lg px-6 py-3 transition-colors",
                         selectedType === option.value
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
-                      )}
-                    >
-                      <RadioGroupItem
-                        value={option.value}
-                        id={option.value}
-                        className="hidden"
-                      />
-                      <Label htmlFor={option.value} className="cursor-pointer">
+                          ? "bg-primary text-white shadow-md"
+                          : "bg-white hover:bg-gray-100"
+                      )}>
+                      <RadioGroupItem value={option.value} id={option.value} className="hidden" />
+                      <Label htmlFor={option.value} className="cursor-pointer font-medium">
                         {option.label}
                       </Label>
                     </div>
                   ))}
                 </RadioGroup>
               </div>
-              <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-               {filteredStats.map((stat) => (
-                  <Card key={stat.department_name}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-1xl font-medium">
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredStats.map((stat) => (
+                  <Card key={stat.department_name} className="border-none shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="bg-gray-50 rounded-t-lg border-b">
+                      <CardTitle className="text-lg font-semibold text-gray-700">
                         {stat.department_name}
                       </CardTitle>
-                      {/* <ReceiptText className="h-5 w-5 text-muted-foreground" /> */}
                     </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border mt-4 border-gray-300 text-center">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="border border-gray-300 px-4 py-2">
-                                O
-                              </th>
-                              <th className="border border-gray-300 px-4 py-2">
-                                N
-                              </th>
-                              <th className="border border-gray-300 px-4 py-2">
-                                M
-                              </th>
-                              <th className="border border-gray-300 px-4 py-2">
-                                F
-                              </th>
-                              <th className="border border-gray-300 px-4 py-2">
-                                C
-                              </th>
-                              <th className="border border-gray-300 px-4 py-2">
-                                T
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_old_visits || 0}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_visits_today || 0}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_male_visits || 0}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_female_visits || 0}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_child_visits || 0}
-                              </td>
-                              <td className="border border-gray-300 px-4 py-2">
-                                {stat.total_visits_overall || 0}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                    <CardContent className="pt-4">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-gray-600">
+                            <th className="px-2 py-2 border-b">Old</th>
+                            <th className="px-2 py-2 border-b">New</th>
+                            <th className="px-2 py-2 border-b">Male</th>
+                            <th className="px-2 py-2 border-b">Female</th>
+                            <th className="px-2 py-2 border-b">Child</th>
+                            <th className="px-2 py-2 border-b">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="text-center">
+                            <td className="px-2 py-3 text-blue-600 font-medium">{stat.total_old_visits || 0}</td>
+                            <td className="px-2 py-3 text-green-600 font-medium">{stat.total_visits_today || 0}</td>
+                            <td className="px-2 py-3 text-gray-800">{stat.total_male_visits || 0}</td>
+                            <td className="px-2 py-3 text-gray-800">{stat.total_female_visits || 0}</td>
+                            <td className="px-2 py-3 text-gray-800">{stat.total_child_visits || 0}</td>
+                            <td className="px-2 py-3 text-primary font-bold">{stat.total_visits_overall || 0}</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </CardContent>
                   </Card>
-               ))}
+                ))}
               </div>
-           </div>
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
@@ -277,6 +267,5 @@ export default function PrivatePage() {
         </Tabs>
       </SidebarInset>
     </SidebarProvider>
-    
   );
 }
