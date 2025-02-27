@@ -117,9 +117,9 @@ export default function PrivatePage() {
       <SidebarInset className="p-6">
         <SidebarTrigger className="absolute top-4 left-4" />
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue="overview" className="space-y-6 mt-5">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Hospital Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-800">govt siddha hospital palayamkottai</h1>
             <TabsList className="bg-white shadow-sm">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 Overview
