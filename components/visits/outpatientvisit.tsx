@@ -29,7 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format, isToday, parseISO } from "date-fns";
+import { format, isToday, parseISO, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -43,6 +43,8 @@ import { CalendarRange, Users, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface OutpatientVisit {
   visit_id: number;
@@ -68,8 +70,9 @@ const Visitstable = () => {
     }
     return false;
   });
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [startDate, setStartDate] = useState<Date | undefined>(() => new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(() => new Date());
+  const [open, setOpen] = useState(false);
 
   // Save to localStorage when isScreening changes
   useEffect(() => {
@@ -78,14 +81,17 @@ const Visitstable = () => {
 
   const fetchVisitsData = async () => {
     try {
-      const startDateStr = startDate?.toISOString().split("T")[0];
-      const endDateStr = endDate?.toISOString().split("T")[0];
+      // Set the time to the start and end of the local day
+      const today = new Date();
+      const defaultStartDate = startOfDay(today);
+      const defaultEndDate = endOfDay(today);
+
+      const startDateToUse = startDate ? startOfDay(startDate) : defaultStartDate;
+      const endDateToUse = endDate ? endOfDay(endDate) : defaultEndDate;
 
       const url = new URL("/api/visits", window.location.origin);
-      if (startDateStr && endDateStr) {
-        url.searchParams.append("startDate", startDateStr);
-        url.searchParams.append("endDate", endDateStr);
-      }
+      url.searchParams.append("startDate", startDateToUse.toISOString());
+      url.searchParams.append("endDate", endDateToUse.toISOString());
 
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch visits");
@@ -102,11 +108,37 @@ const Visitstable = () => {
     fetchVisitsData();
   }, [startDate, endDate]);
 
+  const refreshTable = () => {
+    setLoading(true);
+    fetchVisitsData().finally(() => {
+      setLoading(false);
+      setOpen(false); // Close the dialog after successful submission
+    });
+  };
+
   const filteredVisits = outpatientVisits.filter((visit) =>
     Object.values(visit).some((value) =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
+  const stats = [
+    {
+      title: "Total Visits Today",
+      value: filteredVisits.filter(v => isToday(parseISO(v.date_of_visit))).length,
+      icon: Users,
+    },
+    {
+      title: "Active Visits",
+      value: filteredVisits.filter(v => v.status === "active").length,
+      icon: Activity,
+    },
+    {
+      title: "Completed Visits",
+      value: filteredVisits.filter(v => v.status === "completed").length,
+      icon: CalendarRange,
+    },
+  ];
 
   if (loading) {
     return (
@@ -117,14 +149,41 @@ const Visitstable = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 space-y-4">
-      <Card>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="container mx-auto px-4 py-4 space-y-6"
+    >
+      {/* Stats Section */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {stats.map((stat, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardContent className="flex items-center p-6">
+              <div className="rounded-full p-3 bg-primary/10">
+                <stat.icon className="h-6 w-6 text-primary" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                <h3 className="text-2xl font-bold">{stat.value}</h3>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="border-t-4 border-t-primary">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Outpatient Visits</CardTitle>
-            <Dialog>
+          <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center">
+            <div>
+              <CardTitle className="text-2xl font-bold flex items-center">
+                <Hospital className="mr-2 h-6 w-6 text-primary" />
+                Outpatient Visits
+              </CardTitle>
+              <p className="text-muted-foreground">Manage and track patient visits</p>
+            </div>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-primary hover:bg-primary/90">
                   <Plus className="h-4 w-4 mr-2" />
                   New Visit
                 </Button>
@@ -134,69 +193,76 @@ const Visitstable = () => {
                   <DialogTitle>Add OutPatient Visit</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="h-[80vh]">
-                  <AddVisitPage isScreening={isScreening} />
+                  <AddVisitPage isScreening={isScreening} onSuccess={refreshTable} />
                 </ScrollArea>
               </DialogContent>
             </Dialog>
           </div>
-          <Separator className="my-4" />
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex-1 min-w-[300px]">
+
+          <Separator className="my-6" />
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-2">
+              <Label>Search</Label>
               <Input
-                placeholder="Search visits..."
+                placeholder="Search by name, ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                className="w-full"
               />
             </div>
-            <div>
+
+            <div className="space-y-2">
+              <Label>Start Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Start date"}
+                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                    {startDate ? format(startDate, "PPP") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={startDate}
-                    onSelect={(date) => {
-                      console.log("Start Date Selected:", date);
-                      if (date) setStartDate(date);
-                    }}
+                    onSelect={setStartDate}
+                    className="rounded-md border"
                   />
                 </PopoverContent>
               </Popover>
             </div>
-            <div>
+
+            <div className="space-y-2">
+              <Label>End Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "End date"}
+                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                    {endDate ? format(endDate, "PPP") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={endDate}
-                    onSelect={(date) => {
-                      console.log("End Date Selected:", date);
-                      if (date) setEndDate(date);
-                    }}
+                    onSelect={setEndDate}
+                    className="rounded-md border"
                   />
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch checked={isScreening} onCheckedChange={setIsScreening} />
-              <Label>Enable Screening</Label>
+
+            <div className="space-y-2 flex items-end">
+              <div className="flex items-center space-x-2 bg-secondary/10 p-3 rounded-md w-full">
+                <Switch checked={isScreening} onCheckedChange={setIsScreening} />
+                <Label>Screening Mode</Label>
+              </div>
             </div>
           </div>
         </CardHeader>
+
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -211,11 +277,16 @@ const Visitstable = () => {
               <TableBody>
                 {filteredVisits.length > 0 ? (
                   filteredVisits.map((visit) => (
-                    <TableRow key={visit.visit_id}>
-                      <TableCell className="font-medium">
-                        #{visit.visit_id}
+                    <TableRow key={visit.visit_id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">#{visit.visit_id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            {visit.name.charAt(0)}
+                          </div>
+                          <span>{visit.name}</span>
+                        </div>
                       </TableCell>
-                      <TableCell>{visit.name}</TableCell>
                       <TableCell>{visit.age}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{visit.department}</Badge>
@@ -232,19 +303,31 @@ const Visitstable = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          View Details
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              Actions
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <DropdownMenuItem>Edit Visit</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">
+                              Cancel Visit
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center py-6 text-muted-foreground"
-                    >
-                      No visits found
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Hospital className="h-8 w-8 mb-2" />
+                        <p>No visits found</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -253,7 +336,7 @@ const Visitstable = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 };
 

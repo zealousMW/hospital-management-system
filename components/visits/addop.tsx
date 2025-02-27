@@ -23,6 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast"; // Update this import
 
 const formSchema = z.object({
   visit_date: z.date(),
@@ -35,9 +36,9 @@ const formSchema = z.object({
   gender: z.enum(["M", "F", "O"]),
   place: z.string().min(2, "Place must be at least 2 characters"),
   outpatient_id: z.number().optional(),
-  department_type: z.string().min(1, "Department type is required"),
-  department: z.string().min(1, "Department is required"),
-  cause: z.string().min(2, "Cause of visit is required"),
+  department_type: z.string().optional(),
+  department: z.string().optional(),
+  cause: z.string().optional(),
 });
 
 type Patient = {
@@ -51,9 +52,11 @@ type Patient = {
 
 interface AddVisitPageProps {
   isScreening: boolean;
+  onSuccess?: () => void; // Add this prop
 }
 
-const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
+const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening, onSuccess }) => {
+  const { toast } = useToast(); // Add this hook
   const [suggestions, setSuggestions] = useState<Patient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -135,10 +138,22 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
       });
 
       if (!response.ok) throw new Error("Failed to create visit");
+      
       form.reset();
-      alert("Visit created successfully");
+      toast({
+        title: "Visit Created",
+        description: "The outpatient visit was registered successfully.",
+      });
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
-      alert("Error creating visit");
+      toast({
+        title: "Error",
+        description: "Failed to create visit. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -242,7 +257,7 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                 name="cause"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Symptoms *</FormLabel>
+                    <FormLabel>Symptoms</FormLabel>
                     <FormControl>
                       <Input {...field} className="border rounded" />
                     </FormControl>
@@ -258,7 +273,7 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                 name="department_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department Type *</FormLabel>
+                    <FormLabel>Department Type</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -290,7 +305,7 @@ const AddVisitPage: React.FC<AddVisitPageProps> = ({ isScreening }) => {
                 name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department *</FormLabel>
+                    <FormLabel>Department</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}

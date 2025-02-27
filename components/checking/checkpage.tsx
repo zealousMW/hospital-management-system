@@ -34,9 +34,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, ArrowRight, Plus, Trash2, MoreHorizontal } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { Eye, ArrowRight, Plus, Trash2, MoreHorizontal, Hospital, ArrowLeft } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+
 
 interface Patient {
   id: number;
@@ -45,6 +49,8 @@ interface Patient {
   age: number;
   gender: string;
   cause: string;
+  visit_date: string;
+  status?: string;
 }
 
 interface LabTest {
@@ -131,10 +137,16 @@ const CheckPage = () => {
   const [selectedBed, setSelectedBed] = useState<number | null>(null);
   const [complain, setComplain] = useState("");
   const [duration, setDuration] = useState("");
+  const router = useRouter();
 
   const handleSelectBed = (bedId: number, e: React.FormEvent) => {
     e.preventDefault();
     setSelectedBed(bedId);
+  };
+
+  // Add this function
+  const handleBack = () => {
+    router.back(); // This will go back to the previous page in history
   };
 
   // Fetch Wards based on Department ID
@@ -335,61 +347,9 @@ const CheckPage = () => {
         }
       }
 
-      // Prepare prescription data
-      // const prescriptionData = {
-      //   medicine_ids: medications.map((med) => med.medicineId),
-      //   dosage: medications.map((med) => med.dosageValue),
-      //   prescription_date: new Date(),
-      //   dosage_timing: medications.map((med) => med.dosagetiming),
-      //   dosage_type: medications.map((med) => med.dosageType),
-      //   visit_id: selectedPatient.visit_id,
-      // };
-
-      // console.log(prescriptionData)
-      // Submit prescription
-      // const prescriptionResponse = await fetch("/api/prescription", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(prescriptionData),
-      // });
-
-      // if (!prescriptionResponse.ok) {
-      //   const error = await prescriptionResponse.json();
-      //   throw new Error(error.error || "Failed to save prescription");
-      // }
-
-      // Update medicine stock after successful prescription
-      // await Promise.all(
-      //   medications.map(async (med) => {
-      //     const medicine = medicines.find(
-      //       (m) => m.medicine_id === med.medicineId
-      //     );
-      //     if (medicine) {
-      //       const currentStock = parseInt(medicine.stock_quantity);
-      //       const usage = med.category === "child" ? 0.5 : 1;
-      //       const newStock = currentStock - usage;
-
-      //       const stockResponse = await fetch("/api/medicine", {
-      //         method: "PUT",
-      //         headers: { "Content-Type": "application/json" },
-      //         body: JSON.stringify({
-      //           medicine_id: med.medicineId,
-      //           stock_quantity: newStock,
-      //         }),
-      //       });
-
-      //       if (!stockResponse.ok) {
-      //         throw new Error(`Failed to update stock for ${med.subtype}`);
-      //       }
-      //     }
-      //   })
-      // );
-
       setIsPrescriptionOpen(false);
-      // Optionally refresh the patient list or show success message
     } catch (error) {
       console.error("Error in prescription submission:", error);
-      // You might want to show an error message to the user
     }
   };
 
@@ -470,97 +430,132 @@ const CheckPage = () => {
   };
 
   return (
-    <div className="w-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>Patient Records</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Search by name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm mb-4"
-          />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="container mx-auto px-4 py-4 space-y-6"
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleBack}
+        className="mb-4"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Visit ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Gender</TableHead>
-                <TableHead>Cause</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isTableLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    Loading patients...
-                  </TableCell>
+      <Card className="border-t-4 border-t-primary">
+        <CardHeader>
+          <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center">
+            <div>
+              <CardTitle className="text-2xl font-bold flex items-center">
+                <Hospital className="mr-2 h-6 w-6 text-primary" />
+                Patient Queue
+              </CardTitle>
+              <p className="text-muted-foreground">Manage and check patient cases</p>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+          
+          <div className="space-y-2">
+            <Label>Search</Label>
+            <Input
+              placeholder="Search by name, ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="rounded-md border shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Visit ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Age</TableHead>
+                  <TableHead>Gender</TableHead>
+                  <TableHead>Cause</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : patients.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    No patients found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                patients
-                  .filter((patient) =>
-                    patient.name
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase())
-                  )
-                  .map((patient) => (
-                    <TableRow key={patient.id}>
-                      <TableCell>{patient.visit_id}</TableCell>
-                      <TableCell>{patient.name}</TableCell>
-                      <TableCell>{patient.age}</TableCell>
-                      <TableCell>{patient.gender}</TableCell>
-                      <TableCell>{patient.cause}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Details
-                          </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleProceed(patient)}
-                          >
-                            <ArrowRight className="h-4 w-4 mr-2" />
-                            Treatment
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleProceed(patient)}
-                              >
-                                Referral OP
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleInpatients(patient)}
-                              >
-                                Convert Inpatient
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isTableLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Hospital className="h-8 w-8 mb-2" />
+                        <p>Loading patients...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : patients.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Hospital className="h-8 w-8 mb-2" />
+                        <p>No patients found</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  patients
+                    .filter((patient) =>
+                      patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((patient) => (
+                      <TableRow key={patient.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">#{patient.visit_id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              {patient.name.charAt(0)}
+                            </div>
+                            <span>{patient.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{patient.age}</TableCell>
+                        <TableCell>{patient.gender}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{patient.cause}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" size="sm" onClick={() => handleProceed(patient)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Details
+                            </Button>
+                            <Button variant="default" size="sm" onClick={() => handleProceed(patient)}>
+                              <ArrowRight className="h-4 w-4 mr-2" />
+                              Treatment
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleProceed(patient)}>
+                                  Referral OP
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleInpatients(patient)}>
+                                  Convert Inpatient
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -1035,24 +1030,6 @@ const CheckPage = () => {
                 />
               </div>
               <div>
-                {/*<Label htmlFor="ward_no">Ward Number *</Label>
-                <Input
-                  type="text"
-                  name="ward_no"
-                  value={inpatientData.ward_no}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="bed_no">Bed Number *</Label>
-                <Input
-                  type="text"
-                  name="bed_no"
-                  value={inpatientData.bed_no}
-                  onChange={handleChange}
-                  required
-                />*/}
                 <label className="block font-semibold mb-2">Select Ward</label>
                 <Select value={selectedWard} onValueChange={setSelectedWard}>
                   <SelectTrigger>
@@ -1101,8 +1078,12 @@ const CheckPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 };
 
 export default CheckPage;
+function parseISO(dateString: string): Date {
+  return new Date(dateString);
+}
+
