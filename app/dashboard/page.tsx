@@ -119,7 +119,7 @@ export default function PrivatePage() {
 
         <Tabs defaultValue="overview" className="space-y-6 mt-5">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">govt siddha hospital palayamkottai</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Govt. Siddha Medical College - Palayamkottai</h1>
             <TabsList className="bg-white shadow-sm">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 Overview
