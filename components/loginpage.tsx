@@ -65,7 +65,7 @@ const Patient = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <section className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome to Siddha Hospital
+            தமிழ் சித்தன்
           </h1>
           <p className="mt-2 text-gray-600">
             Please login to access your medical dashboard
