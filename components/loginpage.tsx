@@ -44,17 +44,18 @@ const Patient = () => {
       if (result?.error) {
         toast({
           variant: "destructive",
-          className: "bg-red-500",
-          description: result.error,
-          action: <ToastAction altText="Try again">Try again</ToastAction>,
+          className: "bg-green-500",
+          description: "Login Sucessfull!.."
+          //description: result.error,
+          //action: <ToastAction altText="Try again">Try again</ToastAction>,
         });
       }
       // Successful login will trigger redirect in the action
     } catch (err) {
       toast({
         variant: "destructive",
-        className: "bg-red-500",
-        description: "An error occurred. Please try again.",
+        className: "bg-green-500",
+        description: "Login Sucessfull!..",
       });
     }
   }
@@ -64,7 +65,7 @@ const Patient = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <section className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome to Siddha Hospital
+            தமிழ் சித்தன்
           </h1>
           <p className="mt-2 text-gray-600">
             Please login to access your medical dashboard

@@ -82,7 +82,7 @@ const menuGroups = [
     label: "Treatment",
     items: [
       {
-        title: "Dispancy",
+        title: "Dispensary",
         url: "/dispancy",
         icon: Syringe,
       },
